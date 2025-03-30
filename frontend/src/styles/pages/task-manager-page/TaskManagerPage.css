@@ -1,0 +1,106 @@
+
+/* 全体のレイアウト */
+.todo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
+  color: #4b5563; /* text-gray-600 */
+  font-family: monospace;
+}
+
+/* ヘッダーのスタイル */
+.todo-header {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.header-icon {
+  height: 2rem;
+  width: 2rem;
+  margin-right: 12px;
+  color: #6366f1; /* text-indigo-500 */
+  cursor: pointer;
+}
+
+.header-title {
+  text-align: center;
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 800; /* font-extrabold */
+}
+
+/* ログアウトボタン */
+.logout-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  margin: 24px 0;
+  color: #3b82f6; /* text-blue-500 */
+  cursor: pointer;
+}
+
+/* フォームのスタイル */
+.todo-form {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.form-input {
+  margin-bottom: 12px;
+  margin-right: 12px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 4px;
+  outline: none;
+}
+
+.submit-button {
+  margin: 0 12px;
+  padding: 8px 12px;
+  color: white;
+  background-color: #4f46e5; /* bg-indigo-600 */
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.submit-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* タスクリスト */
+.task-list {
+  margin-top: 20px;
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+.task-item {
+  padding: 10px;
+  background-color: #f3f4f6; /* gray-100 */
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 5px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-item button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ef4444; /* red-500 */
+  font-size: 1rem;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  color: #374151; /* gray-700 */
+  margin-top: 10px;
+}

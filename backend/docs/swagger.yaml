@@ -1,0 +1,335 @@
+basePath: /
+definitions:
+  model.CsrfTokenResponse:
+    properties:
+      csrf_token:
+        example: token-string-here
+        type: string
+    type: object
+  model.TaskRequest:
+    properties:
+      title:
+        example: 買い物に行く
+        maxLength: 100
+        type: string
+    required:
+    - title
+    type: object
+  model.TaskResponse:
+    properties:
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: 買い物に行く
+        type: string
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
+  model.UserLoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.UserResponse:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+  model.UserSignupRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: ブログCMSのバックエンドAPI
+  title: Blog CMS API
+  version: "1.0"
+paths:
+  /csrf-token:
+    get:
+      consumes:
+      - application/json
+      description: CSRFトークンを取得する
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CsrfTokenResponse'
+      summary: CSRFトークン取得
+      tags:
+      - users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 既存ユーザーのログイン処理
+      parameters:
+      - description: ログイン情報
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザーログイン
+      tags:
+      - users
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: ユーザーのログアウト処理
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: ユーザーログアウト
+      tags:
+      - users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: 新しいユーザーアカウントを作成する
+      parameters:
+      - description: ユーザー登録情報
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserSignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 新規ユーザー登録
+      tags:
+      - users
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: ログインユーザーのすべてのタスクを取得する
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.TaskResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザーのタスク一覧を取得
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: ユーザーの新しいタスクを作成する
+      parameters:
+      - description: タスク情報
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/model.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 新しいタスクを作成
+      tags:
+      - tasks
+  /tasks/{taskId}:
+    delete:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを削除する
+      parameters:
+      - description: タスクID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: タスクを削除
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを取得する
+      parameters:
+      - description: タスクID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 特定のタスクを取得
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを更新する
+      parameters:
+      - description: タスクID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: 更新するタスク情報
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/model.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: タスクを更新
+      tags:
+      - tasks
+schemes:
+- http
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

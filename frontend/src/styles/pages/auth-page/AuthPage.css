@@ -1,0 +1,91 @@
+/* src/styles/Auth.css */
+
+/* 全体のスタイル */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+  color: #4a5568; /* text-gray-600 */
+  background-color: #f7fafc; /* light-gray background */
+}
+
+/* ヘッダー */
+.auth-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.auth-header-icon {
+  height: 2rem;
+  width: 2rem;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  color: #3b82f6; /* text-blue-500 */
+}
+
+.auth-title {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 800; /* font-extrabold */
+  text-align: center;
+}
+
+/* フォーム */
+.auth-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* 入力フィールド */
+.auth-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem; /* text-sm */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.25rem;
+}
+
+/* ボタン */
+.auth-button {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #4f46e5; /* bg-indigo-600 */
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-button:hover {
+  background-color: #4338ca;
+}
+
+/* モード切り替えアイコン */
+.auth-switch {
+  margin-top: 1rem;
+  width: 50px;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.auth-switch:hover {
+  transform: rotate(180deg);
+}

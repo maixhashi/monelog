@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  dev-postgres:
+    image: postgres:15.1-alpine
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_USER: monelog-owner
+      POSTGRES_PASSWORD: monelog-owner
+      POSTGRES_DB: monelog-owner
+    restart: always
+    networks:
+      - monelog-owner-network
+networks:
+  monelog-owner-network:

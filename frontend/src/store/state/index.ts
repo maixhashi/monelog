@@ -1,5 +1,5 @@
-import { UserState } from '../state/userState';
-import { TaskState } from '../state/taskState';
+import { UserState } from './userState'
+import { TaskState } from './taskState'
+import { CardStatementState } from './cardStatementState'
 
-// 全体のアプリケーション状態の型を更新
-export type State = UserState & TaskState
+export type State = UserState & TaskState & CardStatementState

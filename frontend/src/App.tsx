@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './pages/AuthPage'
 import { TaskManagerPage } from './pages/TaskManagerPage'
+import { CsvUploadPage } from './pages/CsvUploadPage'
 import axios from 'axios'
 import { CsrfToken } from './types'
 
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<AuthPage />} />
         <Route path="/task-manager" element={<TaskManagerPage />} />
+        <Route path="/csv-upload" element={<CsvUploadPage />} />
       </Routes>
     </BrowserRouter>
   )

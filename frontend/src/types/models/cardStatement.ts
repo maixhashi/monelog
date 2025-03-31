@@ -20,9 +20,9 @@ export type CardStatementInput = {
 /**
  * 集計結果の型
  */
-export type CardStatementSummary = {
-  type: '発生' | '分割';
-  statementNo: number;
+export interface CardStatementSummary {
+  type: string;
+  statementNo: number; // number型であることを確認
   cardType: string;
   description: string;
   useDate: string;

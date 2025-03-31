@@ -9,23 +9,7 @@ import {
   Description as DescriptionIcon
 } from '@mui/icons-material';
 
-interface CardStatementSummary {
-  type: string;
-  statementNo: string;
-  cardType: string;
-  description: string;
-  useDate: string;
-  paymentDate: string;
-  paymentMonth: string;
-  amount: number;
-  totalChargeAmount: number;
-  chargeAmount: number;
-  remainingBalance: number;
-  paymentCount: number;
-  installmentCount: number;
-  annualRate: number;
-  monthlyRate: number;
-}
+import { CardStatementSummary } from '../../types/models/cardStatement';
 
 interface ResultsTableProps {
   cardStatementSummaries: CardStatementSummary[];

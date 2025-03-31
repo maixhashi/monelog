@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Container } from '@mui/material';
 import useStore from '../store';
-import { processCSVData } from '../components/csv-upload-page/utils/csvProcessor';
+import { processCSVData, CardType } from '../components/csv-upload-page/utils/csvProcessor/index';
+import { CardStatementSummary } from '../types/models/cardStatement';
 import { 
   Header, 
   Instructions, 
@@ -15,6 +16,7 @@ export const CsvUploadPage = () => {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [cardType, setCardType] = useState<CardType>('rakuten');
 
   // CSVを処理して集計データを生成
   const processCSV = useCallback(async () => {
@@ -23,7 +25,7 @@ export const CsvUploadPage = () => {
     setIsProcessing(true);
     
     try {
-      const summaries = await processCSVData(csvFile);
+      const summaries = await processCSVData(csvFile, cardType);
       setCardStatementSummaries(summaries);
     } catch (error) {
       console.error('CSV処理エラー:', error);
@@ -31,7 +33,7 @@ export const CsvUploadPage = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [csvFile, setCardStatementSummaries]);
+  }, [csvFile, cardType, setCardStatementSummaries]);
 
   const clearResults = useCallback(() => {
     setCsvFile(null);
@@ -52,6 +54,8 @@ export const CsvUploadPage = () => {
         setCsvFile={setCsvFile}
         isProcessing={isProcessing}
         processCSV={processCSV}
+        cardType={cardType}
+        setCardType={setCardType}
       />
       
       <ResultsTable 

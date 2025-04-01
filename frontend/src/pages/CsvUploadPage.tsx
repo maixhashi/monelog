@@ -38,6 +38,12 @@ export const CsvUploadPage = () => {
     setCardStatementSummaries([]);
   }, [setCardStatementSummaries]);
 
+  // Convert statementNo from number to string for each summary
+  const formattedSummaries = cardStatementSummaries.map(summary => ({
+    ...summary,
+    statementNo: String(summary.statementNo)
+  }));
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Header 
@@ -55,7 +61,7 @@ export const CsvUploadPage = () => {
       />
       
       <ResultsTable 
-        cardStatementSummaries={cardStatementSummaries}
+        cardStatementSummaries={formattedSummaries}
         clearResults={clearResults}
       />
       

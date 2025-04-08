@@ -2,13 +2,13 @@ import { useState, useCallback } from 'react';
 import { Container } from '@mui/material';
 import useStore from '../store';
 import { processCSVData, CardType } from '../components/csv-upload-page/utils/csvProcessor/index';
-import { CardStatementSummary } from '../types/models/cardStatement';
 import { 
   Header, 
   Instructions, 
   FileUploader, 
   ResultsTable, 
-  Footer 
+  Footer,
+  CsvPreview
 } from '../components/csv-upload-page';
 
 export const CsvUploadPage = () => {
@@ -57,6 +57,9 @@ export const CsvUploadPage = () => {
         cardType={cardType}
         setCardType={setCardType}
       />
+      
+      {/* CSVプレビューコンポーネントを追加 */}
+      <CsvPreview file={csvFile} maxRows={10} />
       
       <ResultsTable 
         cardStatementSummaries={cardStatementSummaries}

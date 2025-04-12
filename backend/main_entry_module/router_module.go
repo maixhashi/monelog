@@ -13,6 +13,7 @@ func (m *MainEntryPackage) InitRouter() *echo.Echo {
 	e := router.NewRouter(
 		m.UserController,
 		m.TaskController,
+		m.CardStatementController,
 	)
 	
 	// Swaggerのエンドポイントを追加

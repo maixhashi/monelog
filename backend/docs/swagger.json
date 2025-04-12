@@ -12,6 +12,151 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
+        "/card-statements": {
+            "get": {
+                "description": "ログインユーザーのすべてのカード明細を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "ユーザーのカード明細一覧を取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CardStatementResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/card-statements/upload": {
+            "post": {
+                "description": "カード明細のCSVファイルをアップロードして解析する",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "CSVファイルをアップロードして解析",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "CSVファイル",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "カード種類 (rakuten, mufg, epos)",
+                        "name": "card_type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CardStatementResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/card-statements/{cardStatementId}": {
+            "get": {
+                "description": "指定されたIDのカード明細を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "特定のカード明細を取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "カード明細ID",
+                        "name": "cardStatementId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CardStatementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/csrf-token": {
             "get": {
                 "description": "CSRFトークンを取得する",
@@ -401,6 +546,83 @@
         }
     },
     "definitions": {
+        "model.CardStatementResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "annual_rate": {
+                    "type": "number",
+                    "example": 0
+                },
+                "card_type": {
+                    "type": "string",
+                    "example": "楽天カード"
+                },
+                "charge_amount": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Amazon.co.jp"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "installment_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "monthly_rate": {
+                    "type": "number",
+                    "example": 0
+                },
+                "payment_count": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "payment_date": {
+                    "type": "string",
+                    "example": "2023/02/27"
+                },
+                "payment_month": {
+                    "type": "string",
+                    "example": "2023年02月"
+                },
+                "remaining_balance": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "statement_no": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total_charge_amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "type": {
+                    "type": "string",
+                    "example": "発生"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "use_date": {
+                    "type": "string",
+                    "example": "2023/01/01"
+                }
+            }
+        },
         "model.CsrfTokenResponse": {
             "type": "object",
             "properties": {

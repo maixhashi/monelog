@@ -8,7 +8,8 @@ import (
 
 func NewRouter(
 	uc controller.IUserController,
-	tc controller.ITaskController) *echo.Echo {
+	tc controller.ITaskController,
+	csc controller.ICardStatementController) *echo.Echo {
 	
 	e := echo.New()
 	
@@ -18,6 +19,7 @@ func NewRouter(
 	// 各種ルートの設定
 	routes.SetupAuthRoutes(e, uc)
 	routes.SetupTaskRoutes(e, tc)
+	routes.SetupCardStatementRoutes(e, csc)
 	
 	return e
 }

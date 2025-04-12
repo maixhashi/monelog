@@ -30,6 +30,7 @@ func SetupTestDB() *gorm.DB {
 	db.AutoMigrate(
 		&model.User{}, 
 		&model.Task{},
+		&model.CardStatement{},
 	)
 
 	return db

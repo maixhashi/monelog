@@ -1,5 +1,62 @@
 basePath: /
 definitions:
+  model.CardStatementResponse:
+    properties:
+      amount:
+        example: 10000
+        type: integer
+      annual_rate:
+        example: 0
+        type: number
+      card_type:
+        example: 楽天カード
+        type: string
+      charge_amount:
+        example: 0
+        type: integer
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      description:
+        example: Amazon.co.jp
+        type: string
+      id:
+        example: 1
+        type: integer
+      installment_count:
+        example: 1
+        type: integer
+      monthly_rate:
+        example: 0
+        type: number
+      payment_count:
+        example: 0
+        type: integer
+      payment_date:
+        example: 2023/02/27
+        type: string
+      payment_month:
+        example: 2023年02月
+        type: string
+      remaining_balance:
+        example: 10000
+        type: integer
+      statement_no:
+        example: 1
+        type: integer
+      total_charge_amount:
+        example: 10000
+        type: integer
+      type:
+        example: 発生
+        type: string
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      use_date:
+        example: 2023/01/01
+        type: string
+    type: object
   model.CsrfTokenResponse:
     properties:
       csrf_token:
@@ -70,6 +127,102 @@ info:
   title: Blog CMS API
   version: "1.0"
 paths:
+  /card-statements:
+    get:
+      consumes:
+      - application/json
+      description: ログインユーザーのすべてのカード明細を取得する
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CardStatementResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザーのカード明細一覧を取得
+      tags:
+      - card-statements
+  /card-statements/{cardStatementId}:
+    get:
+      consumes:
+      - application/json
+      description: 指定されたIDのカード明細を取得する
+      parameters:
+      - description: カード明細ID
+        in: path
+        name: cardStatementId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CardStatementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 特定のカード明細を取得
+      tags:
+      - card-statements
+  /card-statements/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: カード明細のCSVファイルをアップロードして解析する
+      parameters:
+      - description: CSVファイル
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: カード種類 (rakuten, mufg, epos)
+        in: formData
+        name: card_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/model.CardStatementResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSVファイルをアップロードして解析
+      tags:
+      - card-statements
   /csrf-token:
     get:
       consumes:

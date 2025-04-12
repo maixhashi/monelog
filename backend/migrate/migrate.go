@@ -13,5 +13,6 @@ func main() {
 	dbConn.AutoMigrate(
 		&model.User{},
 		&model.Task{},
+		&model.CardStatement{},
 	)
 }

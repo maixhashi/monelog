@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from '@mui/material';
-import { CardType } from './utils/csvProcessor/index';
+import { CardType, cardTypeDisplayNames } from '../../types/cardType';
 
 interface CardTypeSelectorProps {
   cardType: CardType;
@@ -22,9 +22,9 @@ export const CardTypeSelector: React.FC<CardTypeSelectorProps> = ({ cardType, se
         label="カード種類"
         onChange={handleChange}
       >
-        <MenuItem value="rakuten">楽天カード</MenuItem>
-        <MenuItem value="epos">EPOSカード</MenuItem>
-        <MenuItem value="dc">DCカード</MenuItem>
+        <MenuItem value="rakuten">{cardTypeDisplayNames.rakuten}</MenuItem>
+        <MenuItem value="epos">{cardTypeDisplayNames.epos}</MenuItem>
+        <MenuItem value="mufg">{cardTypeDisplayNames.mufg}</MenuItem>
       </Select>
     </FormControl>
   );

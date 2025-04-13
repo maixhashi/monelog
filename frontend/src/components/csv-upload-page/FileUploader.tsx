@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Button, Typography, Paper, CircularProgress, Grid } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { CardType } from './utils/csvProcessor/index';
+import { CardType } from '../../types/cardType';
 import { CardTypeSelector } from './CardTypeSelector';
 
 interface FileUploaderProps {

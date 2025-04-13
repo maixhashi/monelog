@@ -1,28 +1,15 @@
 import { definitions } from '../api/generated';
 
-/**
- * カード明細の入力データ型
- */
-export type CardStatementInput = {
-  useDate: string;
-  storeName: string;
-  user: string;
-  paymentMethod: string;
-  amount: number;
-  fee: number;
-  totalAmount: number;
-  paymentMonth: string;
-  currentMonthPayment: number;
-  nextMonthBalance: number;
-  futurePayments: number;
-};
+// バックエンドのレスポンス型
+export type CardStatementResponse = definitions['model.CardStatementResponse'];
 
 /**
  * 集計結果の型
+ * バックエンドのレスポンスと互換性を持たせる
  */
 export interface CardStatementSummary {
   type: string;
-  statementNo: number; // number型であることを確認
+  statementNo: number;
   cardType: string;
   description: string;
   useDate: string;
@@ -36,6 +23,9 @@ export interface CardStatementSummary {
   installmentCount: number;
   annualRate: number;
   monthlyRate: number;
+  id?: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 /**

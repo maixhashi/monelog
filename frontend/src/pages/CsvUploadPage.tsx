@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Container } from '@mui/material';
+import { Container, Alert, Snackbar } from '@mui/material';
 import useStore from '../store';
-import { processCSVData, CardType } from '../components/csv-upload-page/utils/csvProcessor/index';
+import { CardType } from '../types/cardType';
 import { 
   Header, 
   Instructions, 
@@ -10,6 +10,7 @@ import {
   Footer,
   CsvPreview
 } from '../components/csv-upload-page';
+import { useMutateCardStatements } from '../hooks/mutateHooks/useMutateCardStatements';
 
 export const CsvUploadPage = () => {
   const { setCardStatementSummaries, cardStatementSummaries } = useStore();
@@ -17,27 +18,39 @@ export const CsvUploadPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [cardType, setCardType] = useState<CardType>('rakuten');
+  const [error, setError] = useState<string | null>(null);
 
-  // CSVを処理して集計データを生成
+  // APIミューテーションフックを使用
+  const { uploadCSVMutation } = useMutateCardStatements();
+
+  // CSVをアップロードして処理
   const processCSV = useCallback(async () => {
     if (!csvFile) return;
 
     setIsProcessing(true);
+    setError(null);
     
     try {
-      const summaries = await processCSVData(csvFile, cardType);
-      setCardStatementSummaries(summaries);
-    } catch (error) {
+      // バックエンドAPIを使用してCSVをアップロード・処理
+      const result = await uploadCSVMutation.mutateAsync({
+        file: csvFile,
+        cardType: cardType
+      });
+      
+      // 結果をストアに保存
+      setCardStatementSummaries(result);
+    } catch (error: any) {
       console.error('CSV処理エラー:', error);
-      alert('CSVの処理中にエラーが発生しました。');
+      setError(error.message || 'CSVの処理中にエラーが発生しました。');
     } finally {
       setIsProcessing(false);
     }
-  }, [csvFile, cardType, setCardStatementSummaries]);
+  }, [csvFile, cardType, setCardStatementSummaries, uploadCSVMutation]);
 
   const clearResults = useCallback(() => {
     setCsvFile(null);
     setCardStatementSummaries([]);
+    setError(null);
   }, [setCardStatementSummaries]);
 
   return (
@@ -58,8 +71,19 @@ export const CsvUploadPage = () => {
         setCardType={setCardType}
       />
       
-      {/* CSVプレビューコンポーネントを追加 */}
+      {/* CSVプレビューコンポーネント */}
       <CsvPreview file={csvFile} maxRows={10} />
+      
+      {/* エラー表示 */}
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
       
       <ResultsTable 
         cardStatementSummaries={cardStatementSummaries}

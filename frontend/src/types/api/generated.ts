@@ -4,6 +4,73 @@
  */
 
 export interface paths {
+  "/card-statements": {
+    /** ログインユーザーのすべてのカード明細を取得する */
+    get: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.CardStatementResponse"][];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/card-statements/upload": {
+    /** カード明細のCSVファイルをアップロードして解析する */
+    post: {
+      parameters: {
+        formData: {
+          /** CSVファイル */
+          file: unknown;
+          /** カード種類 (rakuten, mufg, epos) */
+          card_type: string;
+        };
+      };
+      responses: {
+        /** Created */
+        201: {
+          schema: definitions["model.CardStatementResponse"][];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/card-statements/{cardStatementId}": {
+    /** 指定されたIDのカード明細を取得する */
+    get: {
+      parameters: {
+        path: {
+          /** カード明細ID */
+          cardStatementId: number;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.CardStatementResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
   "/csrf-token": {
     /** CSRFトークンを取得する */
     get: {
@@ -190,6 +257,44 @@ export interface paths {
 }
 
 export interface definitions {
+  "model.CardStatementResponse": {
+    /** @example 10000 */
+    amount?: number;
+    /** @example 0 */
+    annual_rate?: number;
+    /** @example 楽天カード */
+    card_type?: string;
+    /** @example 0 */
+    charge_amount?: number;
+    /** @example 2023-01-01T00:00:00Z */
+    created_at?: string;
+    /** @example Amazon.co.jp */
+    description?: string;
+    /** @example 1 */
+    id?: number;
+    /** @example 1 */
+    installment_count?: number;
+    /** @example 0 */
+    monthly_rate?: number;
+    /** @example 0 */
+    payment_count?: number;
+    /** @example 2023/02/27 */
+    payment_date?: string;
+    /** @example 2023年02月 */
+    payment_month?: string;
+    /** @example 10000 */
+    remaining_balance?: number;
+    /** @example 1 */
+    statement_no?: number;
+    /** @example 10000 */
+    total_charge_amount?: number;
+    /** @example 発生 */
+    type?: string;
+    /** @example 2023-01-01T00:00:00Z */
+    updated_at?: string;
+    /** @example 2023/01/01 */
+    use_date?: string;
+  };
   "model.CsrfTokenResponse": {
     /** @example token-string-here */
     csrf_token?: string;

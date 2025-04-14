@@ -47,6 +47,121 @@
                 }
             }
         },
+        "/card-statements/preview": {
+            "post": {
+                "description": "カード明細のCSVファイルをアップロードして解析するが、DBには保存しない",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "CSVファイルをアップロードしてプレビュー",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "CSVファイル",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "カード種類 (rakuten, mufg, epos)",
+                        "name": "card_type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CardStatementResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/card-statements/save": {
+            "post": {
+                "description": "プレビューしたカード明細データをデータベースに保存する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "プレビューしたカード明細を保存",
+                "parameters": [
+                    {
+                        "description": "保存するカード明細データ",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CardStatementSaveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CardStatementResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/card-statements/upload": {
             "post": {
                 "description": "カード明細のCSVファイルをアップロードして解析する",
@@ -175,6 +290,47 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.CsrfTokenResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/dev/card-statements/delete-all": {
+            "post": {
+                "description": "開発環境限定で全カード明細レコードを削除する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "開発環境限定で全カード明細を削除",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.DevCardStatementResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -623,12 +779,94 @@
                 }
             }
         },
+        "model.CardStatementSaveRequest": {
+            "type": "object",
+            "required": [
+                "card_statements",
+                "card_type"
+            ],
+            "properties": {
+                "card_statements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CardStatementSummary"
+                    }
+                },
+                "card_type": {
+                    "type": "string",
+                    "example": "rakuten"
+                }
+            }
+        },
+        "model.CardStatementSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "annual_rate": {
+                    "type": "number"
+                },
+                "card_type": {
+                    "type": "string"
+                },
+                "charge_amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "installment_count": {
+                    "type": "integer"
+                },
+                "monthly_rate": {
+                    "type": "number"
+                },
+                "payment_count": {
+                    "type": "integer"
+                },
+                "payment_date": {
+                    "type": "string"
+                },
+                "payment_month": {
+                    "type": "string"
+                },
+                "remaining_balance": {
+                    "type": "integer"
+                },
+                "statement_no": {
+                    "type": "integer"
+                },
+                "total_charge_amount": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "use_date": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CsrfTokenResponse": {
             "type": "object",
             "properties": {
                 "csrf_token": {
                     "type": "string",
                     "example": "token-string-here"
+                }
+            }
+        },
+        "model.DevCardStatementResponse": {
+            "type": "object",
+            "properties": {
+                "deleted_rows": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "message": {
+                    "type": "string",
+                    "example": "All card statements deleted successfully"
                 }
             }
         },

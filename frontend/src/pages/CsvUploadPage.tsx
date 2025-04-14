@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Container, Alert, Snackbar } from '@mui/material';
+import { Container, Alert, Snackbar, Button, Box } from '@mui/material';
 import useStore from '../store';
 import { CardType } from '../types/cardType';
 import { 
@@ -16,14 +16,16 @@ export const CsvUploadPage = () => {
   const { setCardStatementSummaries, cardStatementSummaries } = useStore();
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [cardType, setCardType] = useState<CardType>('rakuten');
   const [error, setError] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<boolean>(false);
 
   // APIミューテーションフックを使用
-  const { uploadCSVMutation } = useMutateCardStatements();
+  const { previewCSVMutation, saveCardStatementsMutation } = useMutateCardStatements();
 
-  // CSVをアップロードして処理
+  // CSVをアップロードしてプレビュー（データベースには保存しない）
   const processCSV = useCallback(async () => {
     if (!csvFile) return;
 
@@ -31,26 +33,52 @@ export const CsvUploadPage = () => {
     setError(null);
     
     try {
-      // バックエンドAPIを使用してCSVをアップロード・処理
-      const result = await uploadCSVMutation.mutateAsync({
+      // バックエンドAPIを使用してCSVをプレビュー（DBには保存しない）
+      const result = await previewCSVMutation.mutateAsync({
         file: csvFile,
         cardType: cardType
       });
       
-      // 結果をストアに保存
+      // 結果をストアに保存（一時的なプレビューデータ）
       setCardStatementSummaries(result);
+      setPreviewData(true);
     } catch (error: any) {
-      console.error('CSV処理エラー:', error);
-      setError(error.message || 'CSVの処理中にエラーが発生しました。');
+      console.error('CSVプレビューエラー:', error);
+      setError(error.message || 'CSVのプレビュー中にエラーが発生しました。');
     } finally {
       setIsProcessing(false);
     }
-  }, [csvFile, cardType, setCardStatementSummaries, uploadCSVMutation]);
+  }, [csvFile, cardType, setCardStatementSummaries, previewCSVMutation]);
+
+  // プレビューデータをデータベースに保存
+  const saveData = useCallback(async () => {
+    if (cardStatementSummaries.length === 0) return;
+
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      // プレビューしたデータをデータベースに保存
+      const result = await saveCardStatementsMutation.mutateAsync({
+        cardStatements: cardStatementSummaries,
+        cardType: cardType
+      });
+      
+      // 保存完了後の処理
+      setPreviewData(false);
+    } catch (error: any) {
+      console.error('データ保存エラー:', error);
+      setError(error.message || 'データの保存中にエラーが発生しました。');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [cardStatementSummaries, cardType, saveCardStatementsMutation]);
 
   const clearResults = useCallback(() => {
     setCsvFile(null);
     setCardStatementSummaries([]);
     setError(null);
+    setPreviewData(false);
   }, [setCardStatementSummaries]);
 
   return (
@@ -85,10 +113,27 @@ export const CsvUploadPage = () => {
         </Alert>
       </Snackbar>
       
-      <ResultsTable 
-        cardStatementSummaries={cardStatementSummaries}
-        clearResults={clearResults}
-      />
+      {/* 結果テーブルと保存ボタン */}
+      <Box>
+        {previewData && cardStatementSummaries.length > 0 && (
+          <Box sx={{ mt: 2, mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={saveData}
+              disabled={isSaving}
+            >
+              {isSaving ? '保存中...' : 'データを保存する'}
+            </Button>
+          </Box>
+        )}
+        
+        <ResultsTable 
+          cardStatementSummaries={cardStatementSummaries}
+          clearResults={clearResults}
+          isPreviewData={previewData}
+        />
+      </Box>
       
       <Footer />
     </Container>

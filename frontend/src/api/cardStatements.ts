@@ -33,6 +33,41 @@ export const uploadCSV = async (file: File, cardType: CardType): Promise<CardSta
   return mapResponseToSummaries(response.data);
 };
 
+// CSVファイルをプレビュー（保存なし）
+export const previewCSV = async (file: File, cardType: CardType): Promise<CardStatementSummary[]> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('card_type', cardType);
+    
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/card-statements/preview`, 
+      formData, 
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    
+    return mapResponseToSummaries(response.data);
+  };
+  
+  // プレビューしたデータを保存
+  export const saveCardStatements = async (
+    cardStatements: CardStatementSummary[], 
+    cardType: CardType
+  ): Promise<CardStatementSummary[]> => {
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/card-statements/save`,
+      {
+        card_statements: cardStatements,
+        card_type: cardType
+      }
+    );
+    
+    return mapResponseToSummaries(response.data);
+  };
+  
 // バックエンドのレスポンスをフロントエンドの型に変換するヘルパー関数
 function mapResponseToSummary(item: any): CardStatementSummary {
   return {

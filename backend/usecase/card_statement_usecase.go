@@ -14,6 +14,8 @@ type ICardStatementUsecase interface {
 	GetAllCardStatements(userId uint) ([]model.CardStatementResponse, error)
 	GetCardStatementById(userId uint, cardStatementId uint) (model.CardStatementResponse, error)
 	ProcessCSV(file *multipart.FileHeader, request model.CardStatementRequest) ([]model.CardStatementResponse, error)
+	PreviewCSV(file *multipart.FileHeader, request model.CardStatementPreviewRequest) ([]model.CardStatementResponse, error)
+	SaveCardStatements(request model.CardStatementSaveRequest) ([]model.CardStatementResponse, error)
 }
 
 type cardStatementUsecase struct {
@@ -84,6 +86,75 @@ func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request 
 	// 解析結果をデータベースに保存
 	cardStatements := make([]model.CardStatement, len(summaries))
 	for i, summary := range summaries {
+		cardStatements[i] = summary.ToModel(request.UserId)
+	}
+
+	if err := csu.csr.CreateCardStatements(cardStatements); err != nil {
+		return nil, err
+	}
+
+	// レスポンスを作成
+	responses := make([]model.CardStatementResponse, len(cardStatements))
+	for i, cardStatement := range cardStatements {
+		responses[i] = cardStatement.ToResponse()
+	}
+
+	return responses, nil
+}
+
+func (csu *cardStatementUsecase) PreviewCSV(file *multipart.FileHeader, request model.CardStatementPreviewRequest) ([]model.CardStatementResponse, error) {
+	if err := csu.csv.ValidateCardStatementPreviewRequest(request); err != nil {
+		return nil, err
+	}
+
+	// ファイルを開く
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	// ファイルの内容を読み込む
+	buf := new(bytes.Buffer)
+	if _, err = io.Copy(buf, src); err != nil {
+		return nil, err
+	}
+
+	// カード種類に応じたパーサーを取得
+	cardParser, err := parser.GetParser(request.CardType)
+	if err != nil {
+		return nil, err
+	}
+
+	// CSVを解析
+	summaries, err := cardParser.Parse(buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	// レスポンスを作成（DBには保存しない）
+	responses := make([]model.CardStatementResponse, len(summaries))
+	for i, summary := range summaries {
+		cardStatement := summary.ToModel(request.UserId)
+		responses[i] = cardStatement.ToResponse()
+	}
+
+	return responses, nil
+}
+
+func (csu *cardStatementUsecase) SaveCardStatements(request model.CardStatementSaveRequest) ([]model.CardStatementResponse, error) {
+	if err := csu.csv.ValidateCardStatementSaveRequest(request); err != nil {
+		return nil, err
+	}
+
+	// 既存のデータを削除
+	if err := csu.csr.DeleteCardStatements(request.UserId); err != nil {
+		return nil, err
+	}
+
+	// 新しいデータを保存
+	cardStatements := make([]model.CardStatement, len(request.CardStatements))
+	for i, summary := range request.CardStatements {
 		cardStatements[i] = summary.ToModel(request.UserId)
 	}
 

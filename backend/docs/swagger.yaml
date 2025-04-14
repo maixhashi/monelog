@@ -57,10 +57,65 @@ definitions:
         example: 2023/01/01
         type: string
     type: object
+  model.CardStatementSaveRequest:
+    properties:
+      card_statements:
+        items:
+          $ref: '#/definitions/model.CardStatementSummary'
+        type: array
+      card_type:
+        example: rakuten
+        type: string
+    required:
+    - card_statements
+    - card_type
+    type: object
+  model.CardStatementSummary:
+    properties:
+      amount:
+        type: integer
+      annual_rate:
+        type: number
+      card_type:
+        type: string
+      charge_amount:
+        type: integer
+      description:
+        type: string
+      installment_count:
+        type: integer
+      monthly_rate:
+        type: number
+      payment_count:
+        type: integer
+      payment_date:
+        type: string
+      payment_month:
+        type: string
+      remaining_balance:
+        type: integer
+      statement_no:
+        type: integer
+      total_charge_amount:
+        type: integer
+      type:
+        type: string
+      use_date:
+        type: string
+    type: object
   model.CsrfTokenResponse:
     properties:
       csrf_token:
         example: token-string-here
+        type: string
+    type: object
+  model.DevCardStatementResponse:
+    properties:
+      deleted_rows:
+        example: 42
+        type: integer
+      message:
+        example: All card statements deleted successfully
         type: string
     type: object
   model.TaskRequest:
@@ -183,6 +238,82 @@ paths:
       summary: 特定のカード明細を取得
       tags:
       - card-statements
+  /card-statements/preview:
+    post:
+      consumes:
+      - multipart/form-data
+      description: カード明細のCSVファイルをアップロードして解析するが、DBには保存しない
+      parameters:
+      - description: CSVファイル
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: カード種類 (rakuten, mufg, epos)
+        in: formData
+        name: card_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CardStatementResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSVファイルをアップロードしてプレビュー
+      tags:
+      - card-statements
+  /card-statements/save:
+    post:
+      consumes:
+      - application/json
+      description: プレビューしたカード明細データをデータベースに保存する
+      parameters:
+      - description: 保存するカード明細データ
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CardStatementSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/model.CardStatementResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: プレビューしたカード明細を保存
+      tags:
+      - card-statements
   /card-statements/upload:
     post:
       consumes:
@@ -238,6 +369,33 @@ paths:
       summary: CSRFトークン取得
       tags:
       - users
+  /dev/card-statements/delete-all:
+    post:
+      consumes:
+      - application/json
+      description: 開発環境限定で全カード明細レコードを削除する
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.DevCardStatementResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 開発環境限定で全カード明細を削除
+      tags:
+      - dev
   /login:
     post:
       consumes:

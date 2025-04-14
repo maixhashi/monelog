@@ -121,3 +121,16 @@ func (css *CardStatementSummary) ToModel(userId uint) CardStatement {
 		UserId:            userId,
 	}
 }
+
+// CardStatementPreviewRequest CSVプレビュー用リクエスト
+type CardStatementPreviewRequest struct {
+	CardType string `json:"card_type" validate:"required" example:"rakuten"`
+	UserId   uint   `json:"-"`
+}
+
+// CardStatementSaveRequest 一時データを保存するリクエスト
+type CardStatementSaveRequest struct {
+	CardStatements []CardStatementSummary `json:"card_statements" validate:"required"`
+	CardType       string                 `json:"card_type" validate:"required" example:"rakuten"`
+	UserId         uint                   `json:"-"`
+}

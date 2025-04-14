@@ -14,6 +14,7 @@ func (m *MainEntryPackage) InitRouter() *echo.Echo {
 		m.UserController,
 		m.TaskController,
 		m.CardStatementController,
+		m.DevCardStatementController, // 追加
 	)
 	
 	// Swaggerのエンドポイントを追加

@@ -14,11 +14,13 @@ import { CardStatementSummary } from '../../types/models/cardStatement';
 interface ResultsTableProps {
   cardStatementSummaries: CardStatementSummary[];
   clearResults: () => void;
+  isPreviewData?: boolean; // 追加: プレビューデータかどうかを示すフラグ
 }
 
 export const ResultsTable: React.FC<ResultsTableProps> = ({ 
   cardStatementSummaries, 
-  clearResults 
+  clearResults,
+  isPreviewData = false // デフォルト値を設定
 }) => {
   if (cardStatementSummaries.length === 0) {
     return null;
@@ -28,10 +30,11 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
     <Box sx={{ mt: 4, animation: 'fadeIn 0.5s ease-in-out' }}>
       <Paper elevation={2} sx={{ p: 3, mb: 2 }}>
         <Typography variant="h5" component="h2" gutterBottom>
-          集計結果
+          {isPreviewData ? 'プレビュー結果' : '集計結果'}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {cardStatementSummaries.length}件のレコードが処理されました。
+          {cardStatementSummaries.length}件のレコードが{isPreviewData ? 'プレビュー' : '処理'}されました。
+          {isPreviewData && '「データを保存する」ボタンをクリックすると、データベースに保存されます。'}
           分割払いの支払いスケジュールは以下の通りです。
         </Typography>
       </Paper>

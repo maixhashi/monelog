@@ -13,6 +13,7 @@ type MainEntryPackage struct {
 	UserController            controller.IUserController
 	TaskController            controller.ITaskController 
 	CardStatementController   controller.ICardStatementController
+	DevCardStatementController controller.IDevCardStatementController
 	
 	// Swaggerハンドラーを追加（オプション）
 	SwaggerEnabled            bool
@@ -28,6 +29,7 @@ func NewMainEntryPackage(db *gorm.DB) *MainEntryPackage {
 	entry.initUserModule(db)
 	entry.initTaskModule(db)
 	entry.initCardStatementModule(db)
+	entry.initDevCardStatementModule(db)
 
 	return entry
 }
@@ -38,4 +40,12 @@ func (e *MainEntryPackage) initCardStatementModule(db *gorm.DB) {
 	cardStatementValidator := validator.NewCardStatementValidator()
 	cardStatementUsecase := usecase.NewCardStatementUsecase(cardStatementRepo, cardStatementValidator)
 	e.CardStatementController = controller.NewCardStatementController(cardStatementUsecase)
+}
+
+// initDevCardStatementModule は開発環境限定のカード明細関連のモジュールを初期化する
+func (e *MainEntryPackage) initDevCardStatementModule(db *gorm.DB) {
+	devCardStatementRepo := repository.NewDevCardStatementRepository(db)
+	devCardStatementValidator := validator.NewDevCardStatementValidator()
+	devCardStatementUsecase := usecase.NewDevCardStatementUsecase(devCardStatementRepo, devCardStatementValidator)
+	e.DevCardStatementController = controller.NewDevCardStatementController(devCardStatementUsecase)
 }

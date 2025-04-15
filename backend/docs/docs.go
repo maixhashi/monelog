@@ -298,6 +298,251 @@ const docTemplate = `{
                 }
             }
         },
+        "/csv-histories": {
+            "get": {
+                "description": "ログインユーザーのすべてのCSV履歴を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "ユーザーのCSV履歴一覧を取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CSVHistoryResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "カード明細のCSVファイルを履歴として保存する",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "CSVファイルを履歴として保存",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "CSVファイル",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ファイル名",
+                        "name": "file_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "カード種類 (rakuten, mufg, epos)",
+                        "name": "card_type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.CSVHistoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/csv-histories/{csvHistoryId}": {
+            "get": {
+                "description": "指定されたIDのCSV履歴を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "特定のCSV履歴を取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "CSV履歴ID",
+                        "name": "csvHistoryId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CSVHistoryDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "指定されたIDのCSV履歴を削除する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "CSV履歴を削除",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "CSV履歴ID",
+                        "name": "csvHistoryId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/csv-histories/{csvHistoryId}/download": {
+            "get": {
+                "description": "指定されたIDのCSV履歴からCSVファイルをダウンロードする",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "CSV履歴からCSVファイルをダウンロード",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "CSV履歴ID",
+                        "name": "csvHistoryId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/dev/card-statements/delete-all": {
             "post": {
                 "description": "開発環境限定で全カード明細レコードを削除する",
@@ -705,6 +950,62 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.CSVHistoryDetailResponse": {
+            "type": "object",
+            "properties": {
+                "card_type": {
+                    "type": "string",
+                    "example": "rakuten"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "file_data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "file_name": {
+                    "type": "string",
+                    "example": "rakuten_202301.csv"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
+        "model.CSVHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "card_type": {
+                    "type": "string",
+                    "example": "rakuten"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "file_name": {
+                    "type": "string",
+                    "example": "rakuten_202301.csv"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
         "model.CardStatementResponse": {
             "type": "object",
             "properties": {

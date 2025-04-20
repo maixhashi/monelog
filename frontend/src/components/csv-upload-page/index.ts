@@ -5,3 +5,5 @@ export { ResultsTable } from './ResultsTable';
 export { Footer } from './Footer';
 export { CardTypeSelector } from './CardTypeSelector';
 export { CsvPreview } from './CsvPreview';
+export { CSVHistorySaver } from './CSVHistorySaver';
+export { CSVHistoryList } from './CSVHistoryList';

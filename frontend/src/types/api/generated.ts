@@ -19,6 +19,58 @@ export interface paths {
       };
     };
   };
+  "/card-statements/preview": {
+    /** カード明細のCSVファイルをアップロードして解析するが、DBには保存しない */
+    post: {
+      parameters: {
+        formData: {
+          /** CSVファイル */
+          file: unknown;
+          /** カード種類 (rakuten, mufg, epos) */
+          card_type: string;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.CardStatementResponse"][];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/card-statements/save": {
+    /** プレビューしたカード明細データをデータベースに保存する */
+    post: {
+      parameters: {
+        body: {
+          /** 保存するカード明細データ */
+          request: definitions["model.CardStatementSaveRequest"];
+        };
+      };
+      responses: {
+        /** Created */
+        201: {
+          schema: definitions["model.CardStatementResponse"][];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
   "/card-statements/upload": {
     /** カード明細のCSVファイルをアップロードして解析する */
     post: {
@@ -78,6 +130,140 @@ export interface paths {
         /** OK */
         200: {
           schema: definitions["model.CsrfTokenResponse"];
+        };
+      };
+    };
+  };
+  "/csv-histories": {
+    /** ログインユーザーのすべてのCSV履歴を取得する */
+    get: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.CSVHistoryResponse"][];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+    /** カード明細のCSVファイルを履歴として保存する */
+    post: {
+      parameters: {
+        formData: {
+          /** CSVファイル */
+          file: unknown;
+          /** ファイル名 */
+          file_name: string;
+          /** カード種類 (rakuten, mufg, epos) */
+          card_type: string;
+        };
+      };
+      responses: {
+        /** Created */
+        201: {
+          schema: definitions["model.CSVHistoryResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/csv-histories/{csvHistoryId}": {
+    /** 指定されたIDのCSV履歴を取得する */
+    get: {
+      parameters: {
+        path: {
+          /** CSV履歴ID */
+          csvHistoryId: number;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.CSVHistoryDetailResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+    /** 指定されたIDのCSV履歴を削除する */
+    delete: {
+      parameters: {
+        path: {
+          /** CSV履歴ID */
+          csvHistoryId: number;
+        };
+      };
+      responses: {
+        /** No Content */
+        204: {
+          schema: string;
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/csv-histories/{csvHistoryId}/download": {
+    /** 指定されたIDのCSV履歴からCSVファイルをダウンロードする */
+    get: {
+      parameters: {
+        path: {
+          /** CSV履歴ID */
+          csvHistoryId: number;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: unknown;
+        };
+        /** Bad Request */
+        400: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
+        };
+      };
+    };
+  };
+  "/dev/card-statements/delete-all": {
+    /** 開発環境限定で全カード明細レコードを削除する */
+    post: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["model.DevCardStatementResponse"];
+        };
+        /** Forbidden */
+        403: {
+          schema: { [key: string]: string };
+        };
+        /** Internal Server Error */
+        500: {
+          schema: { [key: string]: string };
         };
       };
     };
@@ -257,6 +443,31 @@ export interface paths {
 }
 
 export interface definitions {
+  "model.CSVHistoryDetailResponse": {
+    /** @example rakuten */
+    card_type?: string;
+    /** @example 2023-01-01T00:00:00Z */
+    created_at?: string;
+    file_data?: number[];
+    /** @example rakuten_202301.csv */
+    file_name?: string;
+    /** @example 1 */
+    id?: number;
+    /** @example 2023-01-01T00:00:00Z */
+    updated_at?: string;
+  };
+  "model.CSVHistoryResponse": {
+    /** @example rakuten */
+    card_type?: string;
+    /** @example 2023-01-01T00:00:00Z */
+    created_at?: string;
+    /** @example rakuten_202301.csv */
+    file_name?: string;
+    /** @example 1 */
+    id?: number;
+    /** @example 2023-01-01T00:00:00Z */
+    updated_at?: string;
+  };
   "model.CardStatementResponse": {
     /** @example 10000 */
     amount?: number;
@@ -295,9 +506,37 @@ export interface definitions {
     /** @example 2023/01/01 */
     use_date?: string;
   };
+  "model.CardStatementSaveRequest": {
+    card_statements: definitions["model.CardStatementSummary"][];
+    /** @example rakuten */
+    card_type: string;
+  };
+  "model.CardStatementSummary": {
+    amount?: number;
+    annual_rate?: number;
+    card_type?: string;
+    charge_amount?: number;
+    description?: string;
+    installment_count?: number;
+    monthly_rate?: number;
+    payment_count?: number;
+    payment_date?: string;
+    payment_month?: string;
+    remaining_balance?: number;
+    statement_no?: number;
+    total_charge_amount?: number;
+    type?: string;
+    use_date?: string;
+  };
   "model.CsrfTokenResponse": {
     /** @example token-string-here */
     csrf_token?: string;
+  };
+  "model.DevCardStatementResponse": {
+    /** @example 42 */
+    deleted_rows?: number;
+    /** @example All card statements deleted successfully */
+    message?: string;
   };
   "model.TaskRequest": {
     /** @example 買い物に行く */

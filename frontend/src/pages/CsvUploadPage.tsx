@@ -60,9 +60,29 @@ export const CsvUploadPage = () => {
     setError(null);
     
     try {
-      // プレビューしたデータをデータベースに保存
+      // すべての必要なフィールドを明示的にマッピング（キャメルケースを使用）
+      const mappedStatements = cardStatementSummaries.map(statement => ({
+        type: statement.type || "発生",
+        statementNo: statement.statementNo || 0,
+        cardType: cardType,
+        description: statement.description || "",
+        useDate: statement.useDate || "",
+        paymentDate: statement.paymentDate || "",
+        paymentMonth: statement.paymentMonth || "",
+        amount: Number(statement.amount) || 0,
+        totalChargeAmount: Number(statement.totalChargeAmount) || 0,
+        chargeAmount: Number(statement.chargeAmount) || 0,
+        remainingBalance: Number(statement.remainingBalance) || 0,
+        paymentCount: Number(statement.paymentCount) || 0,
+        installmentCount: Number(statement.installmentCount) || 0,
+        annualRate: Number(statement.annualRate) || 0,
+        monthlyRate: Number(statement.monthlyRate) || 0,
+      }));
+      
+      console.log('送信するデータ:', JSON.stringify(mappedStatements, null, 2));
+      
       const result = await saveCardStatementsMutation.mutateAsync({
-        cardStatements: cardStatementSummaries,
+        cardStatements: mappedStatements,
         cardType: cardType
       });
       

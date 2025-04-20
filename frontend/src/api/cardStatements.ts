@@ -57,11 +57,38 @@ export const previewCSV = async (file: File, cardType: CardType): Promise<CardSt
     cardStatements: CardStatementSummary[], 
     cardType: CardType
   ): Promise<CardStatementSummary[]> => {
+    // 必要なフィールドが全て含まれていることを確認
+    const payload = {
+      card_statements: cardStatements.map(statement => ({
+        // フロントエンドの型（camelCase）からバックエンドの型（snake_case）へ変換
+        type: statement.type,
+        statement_no: statement.statementNo,
+        card_type: statement.cardType || cardType, // cardTypeを使用
+        description: statement.description,
+        use_date: statement.useDate,
+        payment_date: statement.paymentDate,
+        payment_month: statement.paymentMonth,
+        amount: statement.amount,
+        total_charge_amount: statement.totalChargeAmount,
+        charge_amount: statement.chargeAmount,
+        remaining_balance: statement.remainingBalance,
+        payment_count: statement.paymentCount,
+        installment_count: statement.installmentCount,
+        annual_rate: statement.annualRate,
+        monthly_rate: statement.monthlyRate
+      })),
+      card_type: cardType
+    };
+    
+    console.log('APIに送信するペイロード:', JSON.stringify(payload, null, 2));
+    
     const response = await axios.post(
       `${process.env.REACT_APP_API_URL}/card-statements/save`,
+      payload,
       {
-        card_statements: cardStatements,
-        card_type: cardType
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
     

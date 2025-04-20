@@ -14,5 +14,6 @@ func main() {
 		&model.User{},
 		&model.Task{},
 		&model.CardStatement{},
+		&model.CSVHistory{},
 	)
 }

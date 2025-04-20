@@ -1,5 +1,45 @@
 basePath: /
 definitions:
+  model.CSVHistoryDetailResponse:
+    properties:
+      card_type:
+        example: rakuten
+        type: string
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      file_data:
+        items:
+          type: integer
+        type: array
+      file_name:
+        example: rakuten_202301.csv
+        type: string
+      id:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
+  model.CSVHistoryResponse:
+    properties:
+      card_type:
+        example: rakuten
+        type: string
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      file_name:
+        example: rakuten_202301.csv
+        type: string
+      id:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
   model.CardStatementResponse:
     properties:
       amount:
@@ -369,6 +409,169 @@ paths:
       summary: CSRFトークン取得
       tags:
       - users
+  /csv-histories:
+    get:
+      consumes:
+      - application/json
+      description: ログインユーザーのすべてのCSV履歴を取得する
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CSVHistoryResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザーのCSV履歴一覧を取得
+      tags:
+      - csv-histories
+    post:
+      consumes:
+      - multipart/form-data
+      description: カード明細のCSVファイルを履歴として保存する
+      parameters:
+      - description: CSVファイル
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: ファイル名
+        in: formData
+        name: file_name
+        required: true
+        type: string
+      - description: カード種類 (rakuten, mufg, epos)
+        in: formData
+        name: card_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.CSVHistoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSVファイルを履歴として保存
+      tags:
+      - csv-histories
+  /csv-histories/{csvHistoryId}:
+    delete:
+      consumes:
+      - application/json
+      description: 指定されたIDのCSV履歴を削除する
+      parameters:
+      - description: CSV履歴ID
+        in: path
+        name: csvHistoryId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSV履歴を削除
+      tags:
+      - csv-histories
+    get:
+      consumes:
+      - application/json
+      description: 指定されたIDのCSV履歴を取得する
+      parameters:
+      - description: CSV履歴ID
+        in: path
+        name: csvHistoryId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CSVHistoryDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 特定のCSV履歴を取得
+      tags:
+      - csv-histories
+  /csv-histories/{csvHistoryId}/download:
+    get:
+      consumes:
+      - application/json
+      description: 指定されたIDのCSV履歴からCSVファイルをダウンロードする
+      parameters:
+      - description: CSV履歴ID
+        in: path
+        name: csvHistoryId
+        required: true
+        type: integer
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSV履歴からCSVファイルをダウンロード
+      tags:
+      - csv-histories
   /dev/card-statements/delete-all:
     post:
       consumes:

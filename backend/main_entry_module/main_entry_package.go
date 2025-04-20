@@ -14,6 +14,7 @@ type MainEntryPackage struct {
 	TaskController            controller.ITaskController 
 	CardStatementController   controller.ICardStatementController
 	DevCardStatementController controller.IDevCardStatementController
+	CSVHistoryController      controller.ICSVHistoryController
 	
 	// Swaggerハンドラーを追加（オプション）
 	SwaggerEnabled            bool
@@ -30,6 +31,7 @@ func NewMainEntryPackage(db *gorm.DB) *MainEntryPackage {
 	entry.initTaskModule(db)
 	entry.initCardStatementModule(db)
 	entry.initDevCardStatementModule(db)
+	entry.initCSVHistoryModule(db)
 
 	return entry
 }
@@ -48,4 +50,12 @@ func (e *MainEntryPackage) initDevCardStatementModule(db *gorm.DB) {
 	devCardStatementValidator := validator.NewDevCardStatementValidator()
 	devCardStatementUsecase := usecase.NewDevCardStatementUsecase(devCardStatementRepo, devCardStatementValidator)
 	e.DevCardStatementController = controller.NewDevCardStatementController(devCardStatementUsecase)
+}
+
+// initCSVHistoryModule はCSV履歴関連のモジュールを初期化する
+func (e *MainEntryPackage) initCSVHistoryModule(db *gorm.DB) {
+	csvHistoryRepo := repository.NewCSVHistoryRepository(db)
+	csvHistoryValidator := validator.NewCSVHistoryValidator()
+	csvHistoryUsecase := usecase.NewCSVHistoryUsecase(csvHistoryRepo, csvHistoryValidator)
+	e.CSVHistoryController = controller.NewCSVHistoryController(csvHistoryUsecase)
 }

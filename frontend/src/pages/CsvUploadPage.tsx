@@ -8,7 +8,9 @@ import {
   FileUploader, 
   ResultsTable, 
   Footer,
-  CsvPreview
+  CsvPreview,
+  CSVHistorySaver,
+  CSVHistoryList
 } from '../components/csv-upload-page';
 import { useMutateCardStatements } from '../hooks/mutateHooks/useMutateCardStatements';
 
@@ -102,6 +104,9 @@ export const CsvUploadPage = () => {
       {/* CSVプレビューコンポーネント */}
       <CsvPreview file={csvFile} maxRows={10} />
       
+      {/* CSV履歴保存コンポーネント */}
+      {csvFile && <CSVHistorySaver file={csvFile} />}
+      
       {/* エラー表示 */}
       <Snackbar 
         open={!!error} 
@@ -134,6 +139,9 @@ export const CsvUploadPage = () => {
           isPreviewData={previewData}
         />
       </Box>
+      
+      {/* CSV履歴一覧コンポーネント */}
+      <CSVHistoryList />
       
       <Footer />
     </Container>

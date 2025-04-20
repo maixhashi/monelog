@@ -31,6 +31,7 @@ func SetupTestDB() *gorm.DB {
 		&model.User{}, 
 		&model.Task{},
 		&model.CardStatement{},
+		&model.CSVHistory{},
 	)
 
 	return db
@@ -39,6 +40,7 @@ func SetupTestDB() *gorm.DB {
 // データベースをクリーンアップする
 func CleanupTestDB(db *gorm.DB) {
 	// テーブルの全レコードを削除
+	db.Exec("DELETE FROM csv_histories")
 	db.Exec("DELETE FROM tasks")
 	db.Exec("DELETE FROM users")
 }

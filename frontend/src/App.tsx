@@ -5,6 +5,7 @@ import { TaskManagerPage } from './pages/TaskManagerPage'
 import { CsvUploadPage } from './pages/CsvUploadPage'
 import axios from 'axios'
 import { CsrfToken } from './types'
+import { CardStatementsPage } from './pages/CardStatementsPage'
 
 function App() {
   useEffect(() => {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/" element={<AuthPage />} />
         <Route path="/task-manager" element={<TaskManagerPage />} />
         <Route path="/csv-upload" element={<CsvUploadPage />} />
+        <Route path="/card-statements-page" element={<CardStatementsPage />} />
       </Routes>
     </BrowserRouter>
   )

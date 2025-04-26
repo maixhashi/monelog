@@ -10,11 +10,11 @@ import (
 type ICardStatementRepository interface {
 	GetAllCardStatements(userId uint) ([]model.CardStatement, error)
 	GetCardStatementById(userId uint, cardStatementId uint) (model.CardStatement, error)
+	GetCardStatementsByMonth(userId uint, year int, month int) ([]model.CardStatement, error)
 	CreateCardStatement(cardStatement *model.CardStatement) error
 	CreateCardStatements(cardStatements []model.CardStatement) error
 	DeleteCardStatements(userId uint) error
 }
-
 type cardStatementRepository struct {
 	db *gorm.DB
 }
@@ -57,4 +57,19 @@ func (csr *cardStatementRepository) DeleteCardStatements(userId uint) error {
 		return result.Error
 	}
 	return nil
+}
+func (csr *cardStatementRepository) GetCardStatementsByMonth(userId uint, year int, month int) ([]model.CardStatement, error) {
+	var cardStatements []model.CardStatement
+	
+	// PaymentDateから年月を抽出して検索
+	// PaymentDateの形式は "yyyy/mm/dd" なので、これを使って検索
+	yearMonthPattern := fmt.Sprintf("%04d/%02d/", year, month)
+	
+	if err := csr.db.Where("user_id = ? AND payment_date LIKE ?", userId, yearMonthPattern+"%").
+		Order("statement_no, payment_count").
+		Find(&cardStatements).Error; err != nil {
+		return nil, err
+	}
+	
+	return cardStatements, nil
 }

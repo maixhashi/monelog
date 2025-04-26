@@ -41,7 +41,17 @@ func (e *MainEntryPackage) initCardStatementModule(db *gorm.DB) {
 	cardStatementRepo := repository.NewCardStatementRepository(db)
 	cardStatementValidator := validator.NewCardStatementValidator()
 	cardStatementUsecase := usecase.NewCardStatementUsecase(cardStatementRepo, cardStatementValidator)
-	e.CardStatementController = controller.NewCardStatementController(cardStatementUsecase)
+	
+	// CSV履歴ユースケースを取得（または作成）
+	csvHistoryRepo := repository.NewCSVHistoryRepository(db)
+	csvHistoryValidator := validator.NewCSVHistoryValidator()
+	csvHistoryUsecase := usecase.NewCSVHistoryUsecase(csvHistoryRepo, csvHistoryValidator)
+	
+	// 両方のユースケースをコントローラーに渡す
+	e.CardStatementController = controller.NewCardStatementController(
+		cardStatementUsecase, 
+		csvHistoryUsecase,
+	)
 }
 
 // initDevCardStatementModule は開発環境限定のカード明細関連のモジュールを初期化する

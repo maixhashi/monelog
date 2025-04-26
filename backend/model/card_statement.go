@@ -134,3 +134,9 @@ type CardStatementSaveRequest struct {
 	CardType       string                 `json:"card_type" validate:"required" example:"rakuten"`
 	UserId         uint                   `json:"-"`
 }
+// CardStatementByMonthRequest 支払月ごとのカード明細取得リクエスト
+type CardStatementByMonthRequest struct {
+	Year   int  `query:"year" validate:"required" example:"2023"`
+	Month  int  `query:"month" validate:"required,min=1,max=12" example:"4"`
+	UserId uint `json:"-"` // JWTから取得
+}

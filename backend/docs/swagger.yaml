@@ -18,9 +18,17 @@ definitions:
       id:
         example: 1
         type: integer
+      month:
+        description: '追加: 月'
+        example: 1
+        type: integer
       updated_at:
         example: "2023-01-01T00:00:00Z"
         type: string
+      year:
+        description: '追加: 年'
+        example: 2023
+        type: integer
     type: object
   model.CSVHistoryResponse:
     properties:
@@ -36,9 +44,17 @@ definitions:
       id:
         example: 1
         type: integer
+      month:
+        description: '追加: 月'
+        example: 1
+        type: integer
       updated_at:
         example: "2023-01-01T00:00:00Z"
         type: string
+      year:
+        description: '追加: 年'
+        example: 2023
+        type: integer
     type: object
   model.CardStatementResponse:
     properties:
@@ -278,6 +294,46 @@ paths:
       summary: 特定のカード明細を取得
       tags:
       - card-statements
+  /card-statements/by-month:
+    get:
+      consumes:
+      - application/json
+      description: 指定された年月の支払いに関するカード明細を取得する
+      parameters:
+      - description: '年 (例: 2023)'
+        in: query
+        name: year
+        required: true
+        type: integer
+      - description: 月 (1-12)
+        in: query
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CardStatementResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 支払月ごとのカード明細を取得
+      tags:
+      - card-statements
   /card-statements/preview:
     post:
       consumes:
@@ -294,6 +350,14 @@ paths:
         name: card_type
         required: true
         type: string
+      - description: '年 (例: 2023)'
+        in: formData
+        name: year
+        type: integer
+      - description: 月 (1-12)
+        in: formData
+        name: month
+        type: integer
       produces:
       - application/json
       responses:
@@ -370,6 +434,16 @@ paths:
         name: card_type
         required: true
         type: string
+      - description: '年 (例: 2023)'
+        in: formData
+        name: year
+        required: true
+        type: integer
+      - description: 月 (1-12)
+        in: formData
+        name: month
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -452,6 +526,16 @@ paths:
         name: card_type
         required: true
         type: string
+      - description: '年 (例: 2023)'
+        in: formData
+        name: year
+        required: true
+        type: integer
+      - description: 月 (1-12)
+        in: formData
+        name: month
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -570,6 +654,46 @@ paths:
               type: string
             type: object
       summary: CSV履歴からCSVファイルをダウンロード
+      tags:
+      - csv-histories
+  /csv-histories/by-month:
+    get:
+      consumes:
+      - application/json
+      description: 指定された年月のCSV履歴を取得する
+      parameters:
+      - description: '年 (例: 2023)'
+        in: query
+        name: year
+        required: true
+        type: integer
+      - description: 月 (1-12)
+        in: query
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CSVHistoryResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 月別のCSV履歴一覧を取得
       tags:
       - csv-histories
   /dev/card-statements/delete-all:

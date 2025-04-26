@@ -10,8 +10,8 @@ type ICardStatementValidator interface {
 	ValidateCardStatementRequest(request model.CardStatementRequest) error
 	ValidateCardStatementPreviewRequest(request model.CardStatementPreviewRequest) error
 	ValidateCardStatementSaveRequest(request model.CardStatementSaveRequest) error
+	ValidateCardStatementByMonthRequest(request model.CardStatementByMonthRequest) error
 }
-
 type cardStatementValidator struct{}
 
 func NewCardStatementValidator() ICardStatementValidator {
@@ -48,6 +48,20 @@ func (csv *cardStatementValidator) ValidateCardStatementSaveRequest(request mode
 		validation.Field(
 			&request.CardStatements,
 			validation.Required.Error("card_statements is required"),
+		),
+	)
+}
+func (csv *cardStatementValidator) ValidateCardStatementByMonthRequest(request model.CardStatementByMonthRequest) error {
+	return validation.ValidateStruct(&request,
+		validation.Field(
+			&request.Year,
+			validation.Required.Error("year is required"),
+		),
+		validation.Field(
+			&request.Month,
+			validation.Required.Error("month is required"),
+			validation.Min(1).Error("month must be between 1 and 12"),
+			validation.Max(12).Error("month must be between 1 and 12"),
 		),
 	)
 }

@@ -2,7 +2,7 @@
 
 ## 概要
 
-この機能は、ユーザーがクレジットカードの明細CSVファイルをアップロードし、システムがそれを解析して保存する機能です。現在、楽天カード、三菱UFJカード、エポスカードの3種類のCSVフォーマットに対応しています。
+この機能は、ユーザーがクレジットカードの明細CSVファイルをアップロードし、システムがそれを解析して保存する機能です。現在、楽天カード、三菱UFJカード、エポスカードの3種類のCSVフォーマットに対応しています。また、CSVデータのプレビュー機能や支払月ごとの明細取得機能も提供しています。
 
 ## アーキテクチャ
 
@@ -26,6 +26,9 @@
 - `CardStatementRequest` - CSVアップロードのリクエストモデル
 - `CardStatementResponse` - APIレスポンスのモデル
 - `CardStatementSummary` - CSVから解析した明細データの中間モデル
+- `CardStatementPreviewRequest` - CSVプレビュー用リクエストモデル
+- `CardStatementSaveRequest` - 一時データを保存するリクエストモデル
+- `CardStatementByMonthRequest` - 支払月ごとのカード明細取得リクエストモデル
 
 また、モデル間の変換メソッドも提供しています：
 - `ToResponse()` - `CardStatement`から`CardStatementResponse`への変換
@@ -40,6 +43,7 @@
 - `CreateCardStatement` - 単一のカード明細を作成
 - `CreateCardStatements` - 複数のカード明細を一括作成
 - `DeleteCardStatements` - ユーザーのカード明細を削除
+- `GetCardStatementsByMonth` - 指定された年月の支払いに関するカード明細を取得
 
 ### Validator層 (`backend/validator/card_statement_validator.go`)
 
@@ -48,6 +52,11 @@
 - `ValidateCardStatementRequest` - カード明細リクエストの検証
   - `CardType`が必須であること
   - `CardType`が許可されている値（rakuten, mufg, epos）のいずれかであること
+- `ValidateCardStatementPreviewRequest` - CSVプレビューリクエストの検証
+- `ValidateCardStatementSaveRequest` - カード明細保存リクエストの検証
+- `ValidateCardStatementByMonthRequest` - 支払月ごとのカード明細取得リクエストの検証
+  - `Year`が必須であること
+  - `Month`が必須であり、1から12の間であること
 
 ### Usecase層 (`backend/usecase/card_statement_usecase.go`)
 
@@ -63,6 +72,9 @@
   5. 既存データの削除
   6. 解析結果のデータベースへの保存
   7. レスポンスの作成
+- `PreviewCSV` - CSVファイルを解析してプレビューデータを返す（DBには保存しない）
+- `SaveCardStatements` - プレビューしたカード明細データをDBに保存
+- `GetCardStatementsByMonth` - 指定された年月の支払いに関するカード明細を取得
 
 ### Controller層 (`backend/controller/card_statement_controller.go`)
 
@@ -70,7 +82,10 @@ HTTPリクエストを受け取り、適切なUsecaseの処理を呼び出し、
 
 - `GET /card-statements` - ユーザーのすべてのカード明細を取得
 - `GET /card-statements/{cardStatementId}` - 特定のカード明細を取得
-- `POST /card-statements/upload` - CSVファイルをアップロードして解析
+- `POST /card-statements/upload` - CSVファイルをアップロードして解析・保存
+- `POST /card-statements/preview` - CSVファイルをアップロードして解析（プレビュー、保存なし）
+- `POST /card-statements/save` - プレビューしたカード明細データを保存
+- `GET /card-statements/by-month` - 支払月ごとのカード明細を取得
 
 ## 使用方法
 
@@ -83,9 +98,43 @@ POST /card-statements/upload
 **リクエストパラメータ**:
 - `file` (multipart/form-data): CSVファイル
 - `card_type` (form-data): カード種類 (rakuten, mufg, epos)
+- `year` (form-data): 年 (例: 2023)
+- `month` (form-data): 月 (1-12)
 
 **レスポンス**:
 - 成功時: 201 Created と解析されたカード明細の配列
+- 失敗時: エラーメッセージを含む適切なHTTPステータスコード
+
+### CSVファイルのプレビュー
+
+```
+POST /card-statements/preview
+```
+
+**リクエストパラメータ**:
+- `file` (multipart/form-data): CSVファイル
+- `card_type` (form-data): カード種類 (rakuten, mufg, epos)
+
+**レスポンス**:
+- 成功時: 200 OK と解析されたカード明細の配列（DBには保存されない）
+- 失敗時: エラーメッセージを含む適切なHTTPステータスコード
+
+### プレビューしたカード明細の保存
+
+```
+POST /card-statements/save
+```
+
+**リクエストボディ**:
+```json
+{
+  "card_statements": [/* カード明細の配列 */],
+  "card_type": "rakuten"
+}
+```
+
+**レスポンス**:
+- 成功時: 201 Created と保存されたカード明細の配列
 - 失敗時: エラーメッセージを含む適切なHTTPステータスコード
 
 ### すべてのカード明細の取得
@@ -109,4 +158,18 @@ GET /card-statements/{cardStatementId}
 
 **レスポンス**:
 - 成功時: 200 OK とカード明細のオブジェクト
+- 失敗時: エラーメッセージを含む適切なHTTPステータスコード
+
+### 支払月ごとのカード明細の取得
+
+```
+GET /card-statements/by-month?year=2023&month=4
+```
+
+**クエリパラメータ**:
+- `year`: 年 (例: 2023)
+- `month`: 月 (1-12)
+
+**レスポンス**:
+- 成功時: 200 OK と指定された支払月のカード明細の配列
 - 失敗時: エラーメッセージを含む適切なHTTPステータスコード

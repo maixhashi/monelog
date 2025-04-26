@@ -21,8 +21,11 @@ import (
 var (
 	cardStatementDB          *gorm.DB
 	cardStatementRepo        repository.ICardStatementRepository
+	csvHistoryRepo           repository.ICSVHistoryRepository  // 追加
 	cardStatementValidator   validator.ICardStatementValidator
+	csvHistoryValidator      validator.ICSVHistoryValidator    // 追加
 	cardStatementUsecase     usecase.ICardStatementUsecase
+	csvHistoryUsecase        usecase.ICSVHistoryUsecase        // 追加
 	cardStatementController  controller.ICardStatementController
 	cardStatementTestUser    model.User
 	cardStatementOtherUser   model.User
@@ -38,9 +41,12 @@ func setupCardStatementControllerTest() {
 		// 初回のみデータベース接続を作成
 		cardStatementDB = testutils.SetupTestDB()
 		cardStatementRepo = repository.NewCardStatementRepository(cardStatementDB)
+		csvHistoryRepo = repository.NewCSVHistoryRepository(cardStatementDB)  // 追加
 		cardStatementValidator = validator.NewCardStatementValidator()
+		csvHistoryValidator = validator.NewCSVHistoryValidator()              // 追加
 		cardStatementUsecase = usecase.NewCardStatementUsecase(cardStatementRepo, cardStatementValidator)
-		cardStatementController = controller.NewCardStatementController(cardStatementUsecase)
+		csvHistoryUsecase = usecase.NewCSVHistoryUsecase(csvHistoryRepo, csvHistoryValidator)  // 追加
+		cardStatementController = controller.NewCardStatementController(cardStatementUsecase, csvHistoryUsecase)  // 修正
 	}
 	
 	// テストユーザーを作成

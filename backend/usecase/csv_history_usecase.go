@@ -14,6 +14,8 @@ type ICSVHistoryUsecase interface {
 	GetCSVHistoryById(userId uint, csvHistoryId uint) (model.CSVHistoryDetailResponse, error)
 	SaveCSVHistory(file *multipart.FileHeader, request model.CSVHistorySaveRequest) (model.CSVHistoryResponse, error)
 	DeleteCSVHistory(userId uint, csvHistoryId uint) error
+	// 新しいメソッドを追加
+	GetCSVHistoriesByMonth(userId uint, year int, month int) ([]model.CSVHistoryResponse, error)
 }
 
 type csvHistoryUsecase struct {
@@ -70,6 +72,8 @@ func (chu *csvHistoryUsecase) SaveCSVHistory(file *multipart.FileHeader, request
 		CardType: request.CardType,
 		FileData: buf.Bytes(),
 		UserId:   request.UserId,
+		Year:     request.Year,   // 年を保存
+		Month:    request.Month,  // 月を保存
 	}
 
 	// データベースに保存
@@ -82,4 +86,21 @@ func (chu *csvHistoryUsecase) SaveCSVHistory(file *multipart.FileHeader, request
 
 func (chu *csvHistoryUsecase) DeleteCSVHistory(userId uint, csvHistoryId uint) error {
 	return chu.chr.DeleteCSVHistory(userId, csvHistoryId)
+}
+
+// 新しく追加するメソッド
+func (chu *csvHistoryUsecase) GetCSVHistoriesByMonth(userId uint, year int, month int) ([]model.CSVHistoryResponse, error) {
+	// リポジトリから指定された年月のCSV履歴を取得
+	csvHistories, err := chu.chr.GetCSVHistoriesByMonth(userId, year, month)
+	if err != nil {
+		return nil, err
+	}
+
+	// レスポンス形式に変換
+	responses := make([]model.CSVHistoryResponse, len(csvHistories))
+	for i, csvHistory := range csvHistories {
+		responses[i] = csvHistory.ToResponse()
+	}
+	
+	return responses, nil
 }

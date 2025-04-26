@@ -13,6 +13,7 @@ import (
 type ICSVHistoryController interface {
 	GetAllCSVHistories(c echo.Context) error
 	GetCSVHistoryById(c echo.Context) error
+	GetCSVHistoriesByMonth(c echo.Context) error // 追加: 月別取得
 	SaveCSVHistory(c echo.Context) error
 	DeleteCSVHistory(c echo.Context) error
 	DownloadCSVHistory(c echo.Context) error
@@ -78,6 +79,46 @@ func (chc *csvHistoryController) GetCSVHistoryById(c echo.Context) error {
 	return c.JSON(http.StatusOK, csvHistoryRes)
 }
 
+// GetCSVHistoriesByMonth 月別のCSV履歴を取得
+// @Summary 月別のCSV履歴一覧を取得
+// @Description 指定された年月のCSV履歴を取得する
+// @Tags csv-histories
+// @Accept json
+// @Produce json
+// @Param year query int true "年 (例: 2023)"
+// @Param month query int true "月 (1-12)"
+// @Success 200 {array} model.CSVHistoryResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /csv-histories/by-month [get]
+func (chc *csvHistoryController) GetCSVHistoriesByMonth(c echo.Context) error {
+	userId, err := getUserIdFromToken(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
+	}
+	
+	// クエリパラメータの取得
+	yearStr := c.QueryParam("year")
+	monthStr := c.QueryParam("month")
+	
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
+	}
+	
+	month, err := strconv.Atoi(monthStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
+	}
+	
+	csvHistoriesRes, err := chc.chu.GetCSVHistoriesByMonth(userId, year, month)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	
+	return c.JSON(http.StatusOK, csvHistoriesRes)
+}
+
 // SaveCSVHistory CSVファイルを履歴として保存
 // @Summary CSVファイルを履歴として保存
 // @Description カード明細のCSVファイルを履歴として保存する
@@ -87,6 +128,8 @@ func (chc *csvHistoryController) GetCSVHistoryById(c echo.Context) error {
 // @Param file formData file true "CSVファイル"
 // @Param file_name formData string true "ファイル名"
 // @Param card_type formData string true "カード種類 (rakuten, mufg, epos)"
+// @Param year formData int true "年 (例: 2023)"
+// @Param month formData int true "月 (1-12)"
 // @Success 201 {object} model.CSVHistoryResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -116,9 +159,25 @@ func (chc *csvHistoryController) SaveCSVHistory(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "card_type is required"})
 	}
 	
+	// 年月の取得
+	yearStr := c.FormValue("year")
+	monthStr := c.FormValue("month")
+	
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
+	}
+	
+	month, err := strconv.Atoi(monthStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
+	}
+	
 	request := model.CSVHistorySaveRequest{
 		FileName: fileName,
 		CardType: cardType,
+		Year:     year,
+		Month:    month,
 		UserId:   userId,
 	}
 	

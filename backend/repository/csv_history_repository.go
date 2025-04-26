@@ -10,6 +10,7 @@ import (
 type ICSVHistoryRepository interface {
 	GetAllCSVHistories(userId uint) ([]model.CSVHistory, error)
 	GetCSVHistoryById(userId uint, csvHistoryId uint) (model.CSVHistory, error)
+	GetCSVHistoriesByMonth(userId uint, year int, month int) ([]model.CSVHistory, error) // 追加: 月別取得
 	CreateCSVHistory(csvHistory *model.CSVHistory) error
 	DeleteCSVHistory(userId uint, csvHistoryId uint) error
 }
@@ -40,6 +41,15 @@ func (chr *csvHistoryRepository) GetCSVHistoryById(userId uint, csvHistoryId uin
 		return model.CSVHistory{}, fmt.Errorf("CSV history not found")
 	}
 	return csvHistory, nil
+}
+
+func (chr *csvHistoryRepository) GetCSVHistoriesByMonth(userId uint, year int, month int) ([]model.CSVHistory, error) {
+	var csvHistories []model.CSVHistory
+	if err := chr.db.Where("user_id=? AND year=? AND month=?", userId, year, month).
+		Order("created_at DESC").Find(&csvHistories).Error; err != nil {
+		return nil, err
+	}
+	return csvHistories, nil
 }
 
 func (chr *csvHistoryRepository) CreateCSVHistory(csvHistory *model.CSVHistory) error {

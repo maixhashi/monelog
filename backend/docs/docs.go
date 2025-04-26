@@ -50,6 +50,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/card-statements/by-month": {
+            "get": {
+                "description": "指定された年月の支払いに関するカード明細を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "card-statements"
+                ],
+                "summary": "支払月ごとのカード明細を取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "年 (例: 2023)",
+                        "name": "year",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "月 (1-12)",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CardStatementResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/card-statements/preview": {
             "post": {
                 "description": "カード明細のCSVファイルをアップロードして解析するが、DBには保存しない",
@@ -77,6 +137,18 @@ const docTemplate = `{
                         "name": "card_type",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "年 (例: 2023)",
+                        "name": "year",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "月 (1-12)",
+                        "name": "month",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -190,6 +262,20 @@ const docTemplate = `{
                         "type": "string",
                         "description": "カード種類 (rakuten, mufg, epos)",
                         "name": "card_type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "年 (例: 2023)",
+                        "name": "year",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "月 (1-12)",
+                        "name": "month",
                         "in": "formData",
                         "required": true
                     }
@@ -365,6 +451,20 @@ const docTemplate = `{
                         "name": "card_type",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "年 (例: 2023)",
+                        "name": "year",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "月 (1-12)",
+                        "name": "month",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -372,6 +472,66 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/model.CSVHistoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/csv-histories/by-month": {
+            "get": {
+                "description": "指定された年月のCSV履歴を取得する",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csv-histories"
+                ],
+                "summary": "月別のCSV履歴一覧を取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "年 (例: 2023)",
+                        "name": "year",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "月 (1-12)",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CSVHistoryResponse"
+                            }
                         }
                     },
                     "400": {
@@ -975,9 +1135,19 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "month": {
+                    "description": "追加: 月",
+                    "type": "integer",
+                    "example": 1
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2023-01-01T00:00:00Z"
+                },
+                "year": {
+                    "description": "追加: 年",
+                    "type": "integer",
+                    "example": 2023
                 }
             }
         },
@@ -1000,9 +1170,19 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "month": {
+                    "description": "追加: 月",
+                    "type": "integer",
+                    "example": 1
+                },
                 "updated_at": {
                     "type": "string",
                     "example": "2023-01-01T00:00:00Z"
+                },
+                "year": {
+                    "description": "追加: 年",
+                    "type": "integer",
+                    "example": 2023
                 }
             }
         },

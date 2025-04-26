@@ -27,5 +27,15 @@ func (chv *csvHistoryValidator) ValidateCSVHistorySaveRequest(request model.CSVH
 			validation.Required.Error("card_type is required"),
 			validation.In("rakuten", "mufg", "epos").Error("card_type must be one of: rakuten, mufg, epos"),
 		),
+		validation.Field(
+			&request.Year,
+			validation.Required.Error("year is required"),
+		),
+		validation.Field(
+			&request.Month,
+			validation.Required.Error("month is required"),
+			validation.Min(1).Error("month must be between 1 and 12"),
+			validation.Max(12).Error("month must be between 1 and 12"),
+		),
 	)
 }

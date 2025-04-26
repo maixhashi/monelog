@@ -17,6 +17,9 @@ func SetupCardStatementRoutes(e *echo.Echo, csc controller.ICardStatementControl
 	// 個別取得
 	cs.GET("/:cardStatementId", csc.GetCardStatementById)
 	
+	// 支払月ごとの取得 - 新機能
+	cs.GET("/by-month", csc.GetCardStatementsByMonth)
+	
 	// CSVアップロード（直接保存）- 既存機能
 	cs.POST("/upload", csc.UploadCSV)
 	

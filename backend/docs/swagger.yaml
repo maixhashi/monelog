@@ -122,9 +122,19 @@ definitions:
       card_type:
         example: rakuten
         type: string
+      month:
+        example: 4
+        maximum: 12
+        minimum: 1
+        type: integer
+      year:
+        example: 2023
+        type: integer
     required:
     - card_statements
     - card_type
+    - month
+    - year
     type: object
   model.CardStatementSummary:
     properties:

@@ -1267,7 +1267,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "card_statements",
-                "card_type"
+                "card_type",
+                "month",
+                "year"
             ],
             "properties": {
                 "card_statements": {
@@ -1279,6 +1281,16 @@ const docTemplate = `{
                 "card_type": {
                     "type": "string",
                     "example": "rakuten"
+                },
+                "month": {
+                    "type": "integer",
+                    "maximum": 12,
+                    "minimum": 1,
+                    "example": 4
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2023
                 }
             }
         },

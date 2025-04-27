@@ -232,6 +232,11 @@ func (csc *cardStatementController) SaveCardStatements(c echo.Context) error {
 	
 	request.UserId = userId
 	
+	// Ensure year and month are valid
+	if request.Year < 0 || request.Month < 1 || request.Month > 12 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year or month"})
+	}
+	
 	// カード明細の保存
 	cardStatementsRes, err := csc.csu.SaveCardStatements(request)
 	if err != nil {

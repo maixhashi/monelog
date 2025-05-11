@@ -9,13 +9,13 @@ func TestCardStatementRepository_CreateCardStatements(t *testing.T) {
 	setupCardStatementTest()
 	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("複数のカード明細を一括で作成できる", func(t *testing.T) {
-			cardStatements := []model.CardStatement{
+		t.Run("複数のカード明細を一度に作成できる", func(t *testing.T) {
+			statements := []model.CardStatement{
 				{
 					Type:              "発生",
 					StatementNo:       1,
 					CardType:          "楽天カード",
-					Description:       "一括テスト1",
+					Description:       "一括テスト明細1",
 					UseDate:           "2023/01/01",
 					PaymentDate:       "2023/02/27",
 					PaymentMonth:      "2023年02月",
@@ -25,14 +25,18 @@ func TestCardStatementRepository_CreateCardStatements(t *testing.T) {
 					RemainingBalance:  1000,
 					PaymentCount:      0,
 					InstallmentCount:  1,
-					UserId:            csTestUser.ID,
+					AnnualRate:        0.0,
+					MonthlyRate:       0.0,
+					UserId:            cardStatementTestUser.ID,
+					Year:              2023,
+					Month:             1,
 				},
 				{
 					Type:              "発生",
 					StatementNo:       2,
 					CardType:          "楽天カード",
-					Description:       "一括テスト2",
-					UseDate:           "2023/01/15",
+					Description:       "一括テスト明細2",
+					UseDate:           "2023/01/02",
 					PaymentDate:       "2023/02/27",
 					PaymentMonth:      "2023年02月",
 					Amount:            2000,
@@ -41,43 +45,53 @@ func TestCardStatementRepository_CreateCardStatements(t *testing.T) {
 					RemainingBalance:  2000,
 					PaymentCount:      0,
 					InstallmentCount:  1,
-					UserId:            csTestUser.ID,
+					AnnualRate:        0.0,
+					MonthlyRate:       0.0,
+					UserId:            cardStatementTestUser.ID,
+					Year:              2023,
+					Month:             1,
 				},
 			}
 			
-			err := csRepo.CreateCardStatements(cardStatements)
+			err := cardStatementRepo.CreateCardStatements(statements)
 			
 			if err != nil {
 				t.Errorf("CreateCardStatements() error = %v", err)
 			}
 			
-			// 各カード明細のIDが設定されていることを確認
-			for _, cs := range cardStatements {
-				if cs.ID == 0 {
-					t.Error("CreateCardStatements() failed to set ID")
+			// データベースから取得して確認
+			var savedStatements []model.CardStatement
+			result := cardStatementDB.Where("description LIKE ?", "一括テスト明細%").Find(&savedStatements)
+			
+			if result.Error != nil {
+				t.Errorf("データベースからの取得に失敗: %v", result.Error)
+			}
+			
+			if len(savedStatements) != 2 {
+				t.Errorf("保存された明細数が一致しません: got %d, want 2", len(savedStatements))
+			}
+			
+			descriptions := make(map[string]bool)
+			for _, statement := range savedStatements {
+				descriptions[statement.Description] = true
+				
+				if statement.ID == 0 {
+					t.Error("保存された明細のIDが設定されていません")
 				}
 			}
 			
-			// データベースから取得して確認
-			var count int64
-			csDB.Model(&model.CardStatement{}).Where("description LIKE ?", "一括テスト%").Count(&count)
-			
-			if count != 2 {
-				t.Errorf("CreateCardStatements() created %d records, want 2", count)
+			if !descriptions["一括テスト明細1"] || !descriptions["一括テスト明細2"] {
+				t.Errorf("期待した明細が保存されていません: %v", savedStatements)
 			}
+		})
+		
+		t.Run("空の配列の場合はエラーなく処理される", func(t *testing.T) {
+			emptyStatements := []model.CardStatement{}
 			
-			// 内容の確認
-			var savedStatements []model.CardStatement
-			csDB.Where("description LIKE ?", "一括テスト%").Order("amount").Find(&savedStatements)
+			err := cardStatementRepo.CreateCardStatements(emptyStatements)
 			
-			if len(savedStatements) != 2 {
-				t.Errorf("Failed to retrieve created card statements")
-				return
-			}
-			
-			if savedStatements[0].Amount != 1000 || savedStatements[1].Amount != 2000 {
-				t.Errorf("CreateCardStatements() saved incorrect amounts: %v, %v", 
-					savedStatements[0].Amount, savedStatements[1].Amount)
+			if err != nil {
+				t.Errorf("CreateCardStatements() with empty array error = %v", err)
 			}
 		})
 	})

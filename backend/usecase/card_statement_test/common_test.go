@@ -8,7 +8,7 @@ import (
 // カード明細の存在を確認するヘルパー関数
 func assertCardStatementExists(t *testing.T, cardStatementId uint, expectedDescription string, expectedUserId uint) bool {
 	var cardStatement model.CardStatement
-	result := cardStatementDb.First(&cardStatement, cardStatementId)
+	result := db.First(&cardStatement, cardStatementId)
 	
 	if result.Error != nil {
 		t.Errorf("カード明細(ID=%d)がデータベースに存在しません: %v", cardStatementId, result.Error)
@@ -31,7 +31,7 @@ func assertCardStatementExists(t *testing.T, cardStatementId uint, expectedDescr
 // カード明細が存在しないことを確認するヘルパー関数
 func assertCardStatementNotExists(t *testing.T, cardStatementId uint) bool {
 	var count int64
-	cardStatementDb.Model(&model.CardStatement{}).Where("id = ?", cardStatementId).Count(&count)
+	db.Model(&model.CardStatement{}).Where("id = ?", cardStatementId).Count(&count)
 	
 	if count != 0 {
 		t.Errorf("カード明細(ID=%d)がデータベースに存在します", cardStatementId)
@@ -56,6 +56,23 @@ func validateCardStatementResponse(t *testing.T, cardStatement model.CardStateme
 	if cardStatement.CreatedAt.IsZero() || cardStatement.UpdatedAt.IsZero() {
 		t.Errorf("カード明細のタイムスタンプが正しく設定されていません: %+v", cardStatement)
 		return false
+	}
+	
+	return true
+}
+
+// カード明細レスポンスの配列を検証するヘルパー関数
+func validateCardStatementResponses(t *testing.T, responses []model.CardStatementResponse, expectedCount int) bool {
+	if len(responses) != expectedCount {
+		t.Errorf("カード明細の数が一致しません: got=%d, want=%d", len(responses), expectedCount)
+		return false
+	}
+	
+	for _, response := range responses {
+		if response.ID == 0 || response.Description == "" || response.CreatedAt.IsZero() || response.UpdatedAt.IsZero() {
+			t.Errorf("無効なカード明細レスポンス: %+v", response)
+			return false
+		}
 	}
 	
 	return true

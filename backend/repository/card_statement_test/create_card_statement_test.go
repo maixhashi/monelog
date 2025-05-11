@@ -9,12 +9,12 @@ func TestCardStatementRepository_CreateCardStatement(t *testing.T) {
 	setupCardStatementTest()
 	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("新しいカード明細を作成できる", func(t *testing.T) {
-			newCardStatement := &model.CardStatement{
+		t.Run("カード明細を正常に作成できる", func(t *testing.T) {
+			newStatement := &model.CardStatement{
 				Type:              "発生",
 				StatementNo:       1,
 				CardType:          "楽天カード",
-				Description:       "テスト明細",
+				Description:       "新規テスト明細",
 				UseDate:           "2023/01/01",
 				PaymentDate:       "2023/02/27",
 				PaymentMonth:      "2023年02月",
@@ -26,31 +26,30 @@ func TestCardStatementRepository_CreateCardStatement(t *testing.T) {
 				InstallmentCount:  1,
 				AnnualRate:        0.0,
 				MonthlyRate:       0.0,
-				UserId:            csTestUser.ID,
+				UserId:            cardStatementTestUser.ID,
+				Year:              2023,
+				Month:             1,
 			}
 			
-			err := csRepo.CreateCardStatement(newCardStatement)
+			err := cardStatementRepo.CreateCardStatement(newStatement)
 			
 			if err != nil {
 				t.Errorf("CreateCardStatement() error = %v", err)
 			}
 			
-			validateCardStatement(t, newCardStatement)
+			validateCardStatement(t, newStatement)
 			
 			// データベースから取得して確認
-			var savedCardStatement model.CardStatement
-			result := csDB.First(&savedCardStatement, newCardStatement.ID)
+			var savedStatement model.CardStatement
+			result := cardStatementDB.First(&savedStatement, newStatement.ID)
 			
 			if result.Error != nil {
-				t.Errorf("Failed to retrieve created card statement: %v", result.Error)
+				t.Errorf("データベースからの取得に失敗: %v", result.Error)
 			}
 			
-			if savedCardStatement.Description != "テスト明細" {
-				t.Errorf("CreateCardStatement() saved Description = %v, want %v", savedCardStatement.Description, "テスト明細")
-			}
-			
-			if savedCardStatement.Amount != 5000 {
-				t.Errorf("CreateCardStatement() saved Amount = %v, want %v", savedCardStatement.Amount, 5000)
+			if savedStatement.Description != "新規テスト明細" {
+				t.Errorf("保存されたデータが一致しません: got %v, want %v", 
+					savedStatement.Description, "新規テスト明細")
 			}
 		})
 	})

@@ -87,7 +87,7 @@ func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request 
 	// 解析結果をデータベースに保存
 	cardStatements := make([]model.CardStatement, len(summaries))
 	for i, summary := range summaries {
-		cardStatements[i] = summary.ToModel(request.UserId)
+		cardStatements[i] = summary.ToModel(request.UserId, request.Year, request.Month)
 	}
 
 	if err := csu.csr.CreateCardStatements(cardStatements); err != nil {
@@ -136,7 +136,16 @@ func (csu *cardStatementUsecase) PreviewCSV(file *multipart.FileHeader, request 
 	// レスポンスを作成（DBには保存しない）
 	responses := make([]model.CardStatementResponse, len(summaries))
 	for i, summary := range summaries {
-		cardStatement := summary.ToModel(request.UserId)
+		cardStatement := summary.ToModel(request.UserId, request.Year, request.Month)
+		
+		// リクエストから年月を取得して設定（PreviewRequestに年月を追加する必要あり）
+		if request.Year > 0 {
+			cardStatement.Year = request.Year
+		}
+		if request.Month > 0 {
+			cardStatement.Month = request.Month
+		}
+		
 		responses[i] = cardStatement.ToResponse()
 	}
 
@@ -156,7 +165,8 @@ func (csu *cardStatementUsecase) SaveCardStatements(request model.CardStatementS
 	// 新しいデータを保存
 	cardStatements := make([]model.CardStatement, len(request.CardStatements))
 	for i, summary := range request.CardStatements {
-		cardStatements[i] = summary.ToModel(request.UserId)
+		// 年月を引数として渡す
+		cardStatements[i] = summary.ToModel(request.UserId, request.Year, request.Month)
 	}
 
 	if err := csu.csr.CreateCardStatements(cardStatements); err != nil {

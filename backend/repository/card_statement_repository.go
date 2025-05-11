@@ -48,7 +48,10 @@ func (csr *cardStatementRepository) CreateCardStatement(cardStatement *model.Car
 }
 
 func (csr *cardStatementRepository) CreateCardStatements(cardStatements []model.CardStatement) error {
-	return csr.db.Create(&cardStatements).Error
+    if len(cardStatements) == 0 {
+        return nil // 空の配列の場合は早期リターン
+    }
+    return csr.db.Create(&cardStatements).Error
 }
 
 func (csr *cardStatementRepository) DeleteCardStatements(userId uint) error {
@@ -60,16 +63,10 @@ func (csr *cardStatementRepository) DeleteCardStatements(userId uint) error {
 }
 func (csr *cardStatementRepository) GetCardStatementsByMonth(userId uint, year int, month int) ([]model.CardStatement, error) {
 	var cardStatements []model.CardStatement
-	
-	// PaymentDateから年月を抽出して検索
-	// PaymentDateの形式は "yyyy/mm/dd" なので、これを使って検索
-	yearMonthPattern := fmt.Sprintf("%04d/%02d/", year, month)
-	
-	if err := csr.db.Where("user_id = ? AND payment_date LIKE ?", userId, yearMonthPattern+"%").
+	if err := csr.db.Where("user_id = ? AND year = ? AND month = ?", userId, year, month).
 		Order("statement_no, payment_count").
 		Find(&cardStatements).Error; err != nil {
 		return nil, err
 	}
-	
 	return cardStatements, nil
 }

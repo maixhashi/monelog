@@ -11,9 +11,9 @@ func TestCardStatementController_GetAllCardStatements(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		t.Run("ユーザーのカード明細を全て取得する", func(t *testing.T) {
 			// テスト用カード明細の作成
-			createTestCardStatement(cardStatementTestUser.ID, "楽天カード", "Amazon.co.jp")
-			createTestCardStatement(cardStatementTestUser.ID, "三菱UFJカード", "セブンイレブン")
-			createTestCardStatement(cardStatementOtherUser.ID, "エポスカード", "ヨドバシカメラ") // 別ユーザーの明細
+			createTestCardStatement("楽天カード", "Amazon.co.jp", cardStatementTestUser.ID, 2023, 4)
+			createTestCardStatement("楽天カード", "楽天市場", cardStatementTestUser.ID, 2023, 4)
+			createTestCardStatement("楽天カード", "他ユーザーの明細", cardStatementOtherUser.ID, 2023, 4) // 別ユーザーの明細
 			
 			// テスト実行
 			_, c, rec := setupEchoWithJWT(cardStatementTestUser.ID)
@@ -41,12 +41,13 @@ func TestCardStatementController_GetAllCardStatements(t *testing.T) {
 				descriptions[cs.Description] = true
 			}
 			
-			if !descriptions["Amazon.co.jp"] || !descriptions["セブンイレブン"] {
+			if !descriptions["Amazon.co.jp"] || !descriptions["楽天市場"] {
 				t.Errorf("期待したカード明細が結果に含まれていません: %v", response)
 			}
 			
-			if descriptions["ヨドバシカメラ"] {
-				t.Errorf("他ユーザーのカード明細が含まれています: %v", response)
+			// 他ユーザーの明細が含まれていないことを確認
+			if descriptions["他ユーザーの明細"] {
+				t.Errorf("他ユーザーの明細が結果に含まれています: %v", response)
 			}
 		})
 	})

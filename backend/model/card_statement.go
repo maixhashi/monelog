@@ -27,11 +27,15 @@ type CardStatement struct {
 	UpdatedAt         time.Time `json:"updated_at" example:"2023-01-01T00:00:00Z"`
 	User              User      `json:"-" gorm:"foreignKey:UserId; constraint:OnDelete:CASCADE"`
 	UserId            uint      `json:"user_id" gorm:"not null" example:"1"`
+	Year              int       `json:"year" gorm:"not null" example:"2023"`
+	Month             int       `json:"month" gorm:"not null" example:"4"`
 }
 
 // CardStatementRequest カード明細のCSVアップロードリクエスト
 type CardStatementRequest struct {
 	CardType string `json:"card_type" validate:"required" example:"rakuten"` // rakuten, mufg, epos
+	Year     int    `json:"year" validate:"required" example:"2023"`
+	Month    int    `json:"month" validate:"required,min=1,max=12" example:"4"`
 	UserId   uint   `json:"-"`                                               // クライアントからは送信されず、JWTから取得
 }
 
@@ -55,6 +59,8 @@ type CardStatementResponse struct {
 	MonthlyRate       float64   `json:"monthly_rate" example:"0.0"`
 	CreatedAt         time.Time `json:"created_at" example:"2023-01-01T00:00:00Z"`
 	UpdatedAt         time.Time `json:"updated_at" example:"2023-01-01T00:00:00Z"`
+	Year              int       `json:"year" example:"2023"`
+	Month             int       `json:"month" example:"4"`
 }
 
 // CardStatementSummary CSVから解析した明細データ
@@ -97,11 +103,14 @@ func (cs *CardStatement) ToResponse() CardStatementResponse {
 		MonthlyRate:       cs.MonthlyRate,
 		CreatedAt:         cs.CreatedAt,
 		UpdatedAt:         cs.UpdatedAt,
+		Year:              cs.Year,
+		Month:             cs.Month,
 	}
 }
 
 // ToModel CardStatementSummaryからCardStatementへの変換メソッド
-func (css *CardStatementSummary) ToModel(userId uint) CardStatement {
+// 年月を引数として受け取るように変更
+func (css *CardStatementSummary) ToModel(userId uint, year int, month int) CardStatement {
 	return CardStatement{
 		Type:              css.Type,
 		StatementNo:       css.StatementNo,
@@ -119,12 +128,16 @@ func (css *CardStatementSummary) ToModel(userId uint) CardStatement {
 		AnnualRate:        css.AnnualRate,
 		MonthlyRate:       css.MonthlyRate,
 		UserId:            userId,
+		Year:              year,
+		Month:             month,
 	}
 }
 
 // CardStatementPreviewRequest CSVプレビュー用リクエスト
 type CardStatementPreviewRequest struct {
 	CardType string `json:"card_type" validate:"required" example:"rakuten"`
+	Year     int    `json:"year" example:"2023"`     // 追加
+	Month    int    `json:"month" example:"4"`       // 追加
 	UserId   uint   `json:"-"`
 }
 

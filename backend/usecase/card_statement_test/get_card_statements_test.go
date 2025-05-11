@@ -67,7 +67,7 @@ func TestCardStatementUsecase_GetAllCardStatements(t *testing.T) {
 	}
 	
 	for _, cardStatement := range cardStatements {
-		cardStatementDb.Create(&cardStatement)
+		db.Create(&cardStatement)
 	}
 	
 	t.Run("正常系", func(t *testing.T) {

@@ -8,44 +8,54 @@ import (
 func TestCardStatementRepository_DeleteCardStatements(t *testing.T) {
 	setupCardStatementTest()
 	
-	// テスト用のカード明細を作成
-	cardStatements := []model.CardStatement{
-		{Type: "発生", CardType: "楽天カード", Description: "Amazon", Amount: 1000, UserId: csTestUser.ID},
-		{Type: "発生", CardType: "楽天カード", Description: "楽天市場", Amount: 2000, UserId: csTestUser.ID},
-		{Type: "発生", CardType: "MUFG", Description: "ヨドバシカメラ", Amount: 3000, UserId: csOtherUser.ID},
-	}
-	
-	for _, cs := range cardStatements {
-		csDB.Create(&cs)
-	}
-	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("指定したユーザーIDのカード明細のみを削除する", func(t *testing.T) {
+		t.Run("指定したユーザーのカード明細のみを削除する", func(t *testing.T) {
+			// テストデータの作成
+			createMultipleTestCardStatements(cardStatementTestUser.ID, 3, 2023, 1)
+			createMultipleTestCardStatements(cardStatementOtherUser.ID, 2, 2023, 1)
+			
 			// 削除前の確認
-			var beforeCount int64
-			csDB.Model(&model.CardStatement{}).Where("user_id = ?", csTestUser.ID).Count(&beforeCount)
-			if beforeCount != 2 {
-				t.Errorf("テスト前のカード明細数が想定と異なります: got %d, want 2", beforeCount)
+			var beforeCountUser1 int64
+			cardStatementDB.Model(&model.CardStatement{}).Where("user_id = ?", cardStatementTestUser.ID).Count(&beforeCountUser1)
+			
+			var beforeCountUser2 int64
+			cardStatementDB.Model(&model.CardStatement{}).Where("user_id = ?", cardStatementOtherUser.ID).Count(&beforeCountUser2)
+			
+			if beforeCountUser1 < 3 || beforeCountUser2 < 2 {
+				t.Errorf("テストデータの作成に失敗: user1=%d, user2=%d", beforeCountUser1, beforeCountUser2)
 			}
 			
-			err := csRepo.DeleteCardStatements(csTestUser.ID)
+			// 削除実行
+			err := cardStatementRepo.DeleteCardStatements(cardStatementTestUser.ID)
 			
 			if err != nil {
 				t.Errorf("DeleteCardStatements() error = %v", err)
 			}
 			
 			// 削除後の確認
-			var afterCount int64
-			csDB.Model(&model.CardStatement{}).Where("user_id = ?", csTestUser.ID).Count(&afterCount)
-			if afterCount != 0 {
-				t.Errorf("DeleteCardStatements() 削除後のカード明細数が想定と異なります: got %d, want 0", afterCount)
+			var afterCountUser1 int64
+			cardStatementDB.Model(&model.CardStatement{}).Where("user_id = ?", cardStatementTestUser.ID).Count(&afterCountUser1)
+			
+			var afterCountUser2 int64
+			cardStatementDB.Model(&model.CardStatement{}).Where("user_id = ?", cardStatementOtherUser.ID).Count(&afterCountUser2)
+			
+			if afterCountUser1 != 0 {
+				t.Errorf("ユーザー1の明細が削除されていません: got %d, want 0", afterCountUser1)
 			}
 			
-			// 他のユーザーのカード明細は削除されていないことを確認
-			var otherUserCount int64
-			csDB.Model(&model.CardStatement{}).Where("user_id = ?", csOtherUser.ID).Count(&otherUserCount)
-			if otherUserCount != 1 {
-				t.Errorf("DeleteCardStatements() 他のユーザーのカード明細が削除されています: got %d, want 1", otherUserCount)
+			if afterCountUser2 != beforeCountUser2 {
+				t.Errorf("ユーザー2の明細が誤って削除されています: before=%d, after=%d", 
+					beforeCountUser2, afterCountUser2)
+			}
+		})
+		
+		t.Run("存在しないユーザーIDの場合もエラーなく処理される", func(t *testing.T) {
+			nonExistentUserId := uint(9999)
+			
+			err := cardStatementRepo.DeleteCardStatements(nonExistentUserId)
+			
+			if err != nil {
+				t.Errorf("DeleteCardStatements() with non-existent user ID error = %v", err)
 			}
 		})
 	})

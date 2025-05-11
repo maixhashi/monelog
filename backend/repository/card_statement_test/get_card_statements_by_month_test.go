@@ -1,97 +1,54 @@
 package card_statement_test
 
 import (
-	"monelog/model"
 	"testing"
 )
 
 func TestCardStatementRepository_GetCardStatementsByMonth(t *testing.T) {
 	setupCardStatementTest()
 	
-	// 異なる支払月のカード明細を作成
-	januaryStatement := &model.CardStatement{
-		Type:              "発生",
-		StatementNo:       1,
-		CardType:          "楽天カード",
-		Description:       "1月支払い",
-		UseDate:           "2022/12/01",
-		PaymentDate:       "2023/01/27", // 1月支払い
-		PaymentMonth:      "2023年01月",
-		Amount:            1000,
-		TotalChargeAmount: 1000,
-		ChargeAmount:      0,
-		RemainingBalance:  1000,
-		PaymentCount:      0,
-		InstallmentCount:  1,
-		UserId:            csTestUser.ID,
-	}
-	csDB.Create(januaryStatement)
-	
-	februaryStatement := &model.CardStatement{
-		Type:              "発生",
-		StatementNo:       2,
-		CardType:          "楽天カード",
-		Description:       "2月支払い",
-		UseDate:           "2023/01/01",
-		PaymentDate:       "2023/02/27", // 2月支払い
-		PaymentMonth:      "2023年02月",
-		Amount:            2000,
-		TotalChargeAmount: 2000,
-		ChargeAmount:      0,
-		RemainingBalance:  2000,
-		PaymentCount:      0,
-		InstallmentCount:  1,
-		UserId:            csTestUser.ID,
-	}
-	csDB.Create(februaryStatement)
-	
-	// 他のユーザーの2月支払い
-	otherUserFebruaryStatement := &model.CardStatement{
-		Type:              "発生",
-		StatementNo:       3,
-		CardType:          "MUFG",
-		Description:       "他ユーザーの2月支払い",
-		UseDate:           "2023/01/15",
-		PaymentDate:       "2023/02/15", // 2月支払い
-		PaymentMonth:      "2023年02月",
-		Amount:            3000,
-		TotalChargeAmount: 3000,
-		ChargeAmount:      0,
-		RemainingBalance:  3000,
-		PaymentCount:      0,
-		InstallmentCount:  1,
-		UserId:            csOtherUser.ID,
-	}
-	csDB.Create(otherUserFebruaryStatement)
+	// テストデータの作成
+	createTestCardStatement("楽天カード", "1月明細1", cardStatementTestUser.ID, 2023, 1)
+	createTestCardStatement("楽天カード", "1月明細2", cardStatementTestUser.ID, 2023, 1)
+	createTestCardStatement("楽天カード", "2月明細1", cardStatementTestUser.ID, 2023, 2)
+	createTestCardStatement("楽天カード", "他ユーザー1月明細", cardStatementOtherUser.ID, 2023, 1)
 	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("指定した年月の支払いに関するカード明細のみを取得する", func(t *testing.T) {
-			// 2023年2月の支払いを取得
-			result, err := csRepo.GetCardStatementsByMonth(csTestUser.ID, 2023, 2)
+		t.Run("指定した年月のカード明細のみを取得する", func(t *testing.T) {
+			result, err := cardStatementRepo.GetCardStatementsByMonth(cardStatementTestUser.ID, 2023, 1)
 			
 			if err != nil {
 				t.Errorf("GetCardStatementsByMonth() error = %v", err)
 			}
 			
-			if len(result) != 1 {
-				t.Errorf("GetCardStatementsByMonth() got %d card statements, want 1", len(result))
+			if len(result) != 2 {
+				t.Errorf("GetCardStatementsByMonth() got %d statements, want 2", len(result))
 			}
 			
-			if result[0].Description != "2月支払い" {
-				t.Errorf("GetCardStatementsByMonth() got Description = %v, want %v", result[0].Description, "2月支払い")
+			descriptions := make(map[string]bool)
+			for _, statement := range result {
+				descriptions[statement.Description] = true
+				
+				if statement.Year != 2023 || statement.Month != 1 {
+					t.Errorf("取得したカード明細の年月が一致しません: got %d年%d月, want 2023年1月", 
+						statement.Year, statement.Month)
+				}
+			}
+			
+			if !descriptions["1月明細1"] || !descriptions["1月明細2"] {
+				t.Errorf("期待したカード明細が結果に含まれていません: %v", result)
 			}
 		})
 		
-		t.Run("存在しない年月を指定した場合、空の配列を返す", func(t *testing.T) {
-			// 2023年3月の支払いを取得（データなし）
-			result, err := csRepo.GetCardStatementsByMonth(csTestUser.ID, 2023, 3)
+		t.Run("存在しない年月の場合は空の配列を返す", func(t *testing.T) {
+			result, err := cardStatementRepo.GetCardStatementsByMonth(cardStatementTestUser.ID, 2022, 12)
 			
 			if err != nil {
 				t.Errorf("GetCardStatementsByMonth() error = %v", err)
 			}
 			
 			if len(result) != 0 {
-				t.Errorf("GetCardStatementsByMonth() got %d card statements, want 0", len(result))
+				t.Errorf("GetCardStatementsByMonth() got %d statements, want 0", len(result))
 			}
 		})
 	})

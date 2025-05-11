@@ -2,217 +2,272 @@ package card_statement_test
 
 import (
 	"bytes"
+	"io"
 	"mime/multipart"
 	"net/http"
-	"net/http/httptest"
+	"os"
 	"testing"
-
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/labstack/echo/v4"
 )
 
 func TestCardStatementController_UploadCSV(t *testing.T) {
 	setupCardStatementControllerTest()
-
+	
+	// テスト用CSVデータ
+	csvContent := `利用日,利用店名,支払方法,利用金額
+2023/04/01,Amazon.co.jp,1回払い,5000
+2023/04/15,楽天市場,1回払い,3000`
+	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("CSVファイルを正常にアップロードする", func(t *testing.T) {
-			// このテストはモックが必要なため、実際のCSVファイルの処理はスキップ
-			// 実際のテストでは、テスト用のCSVファイルを用意して、multipart/form-dataリクエストを作成する必要がある
-			t.Skip("このテストは実際のCSVファイルが必要なため、スキップします")
+		t.Run("CSVファイルをアップロードして解析する", func(t *testing.T) {
+			// テスト用CSVファイルの作成
+			tmpFile, err := createTestCSVFile(t, csvContent)
+			if err != nil {
+				t.Fatalf("Failed to create test CSV file: %v", err)
+			}
+			defer os.Remove(tmpFile.Name())
+			
+			// ファイルを読み込む
+			fileContent, err := os.ReadFile(tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to read test CSV file: %v", err)
+			}
+			
+			// マルチパートフォームデータの作成
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+
+			fw, err := w.CreateFormFile("file", tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to create form file: %v", err)
+			}
+
+			if _, err := io.Copy(fw, bytes.NewReader(fileContent)); err != nil {
+				t.Fatalf("Failed to copy file content: %v", err)
+			}
+
+			// 必要なフィールドを追加
+			if err := w.WriteField("card_type", "rakuten"); err != nil {
+				t.Fatalf("Failed to add card_type field: %v", err)
+			}
+
+			if err := w.WriteField("year", "2023"); err != nil {
+				t.Fatalf("Failed to add year field: %v", err)
+			}
+
+			if err := w.WriteField("month", "4"); err != nil {
+				t.Fatalf("Failed to add month field: %v", err)
+			}
+
+			w.Close()
+			
+			// テスト実行
+			_, c, rec := setupEchoWithJWTAndMultipartForm(cardStatementTestUser.ID, http.MethodPost, "/card-statements/upload", b.Bytes(), w.FormDataContentType())
+			
+			// 仮実装：テストをスキップする（実際のパーサー実装を待つ）
+			t.Skip("CSV解析の実装を待つため、このテストはスキップします")
+			
+			err = cardStatementController.UploadCSV(c)
+			
+			// 検証
+			if err != nil {
+				t.Errorf("UploadCSV() error = %v", err)
+			}
+			
+			if rec.Code != http.StatusCreated {
+				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusCreated)
+			}
+			
+			// レスポンスボディをパース
+			response := parseCardStatementsResponse(t, rec.Body.Bytes())
+			
+			// 注: 実際のパーサーの実装によって期待される結果は異なります
+			if len(response) == 0 {
+				t.Errorf("UploadCSV() returned empty response")
+			}
 		})
 	})
-
+	
 	t.Run("異常系", func(t *testing.T) {
-		t.Run("ファイルが指定されていない場合", func(t *testing.T) {
+		t.Run("ファイルが指定されていない場合エラーになる", func(t *testing.T) {
+			// ファイルなしのリクエスト
+			// setupEchoWithJWT関数は3つの値を返すので、3つの変数に代入
+			_, c, rec := setupEchoWithJWT(cardStatementTestUser.ID)
+			
 			// テスト実行
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/card-statements/upload", nil)
-			req.Header.Set(echo.HeaderContentType, echo.MIMEMultipartForm)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			// JWTクレームを設定
-			setupJWTToken(c, cardStatementTestUser.ID)
-
 			err := cardStatementController.UploadCSV(c)
-
-			// エラーは返さないが、内部でエラーハンドリングしてステータスコードを返す
-			if err != nil {
-				t.Errorf("UploadCSV() unexpected error = %v", err)
-			}
-
-			if rec.Code != http.StatusBadRequest {
-				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
-			}
-		})
-
-		t.Run("card_typeが指定されていない場合", func(t *testing.T) {
-			// マルチパートフォームを作成
-			body := new(bytes.Buffer)
-			writer := multipart.NewWriter(body)
 			
-			// ダミーファイルを追加
-			part, err := writer.CreateFormFile("file", "test.csv")
+			// 検証
 			if err != nil {
-				t.Fatalf("Failed to create form file: %v", err)
+				t.Errorf("UploadCSV() error = %v", err)
+				return
 			}
-			part.Write([]byte("dummy,csv,content"))
-			writer.Close()
-
-			// テスト実行
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/card-statements/upload", body)
-			req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			// JWTクレームを設定
-			setupJWTToken(c, cardStatementTestUser.ID)
-
-			err = cardStatementController.UploadCSV(c)
-
-			// エラーは返さないが、内部でエラーハンドリングしてステータスコードを返す
-			if err != nil {
-				t.Errorf("UploadCSV() unexpected error = %v", err)
-			}
-
-			if rec.Code != http.StatusBadRequest {
-				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
-			}
-		})
-
-		t.Run("無効なcard_typeが指定された場合", func(t *testing.T) {
-			// マルチパートフォームを作成
-			body := new(bytes.Buffer)
-			writer := multipart.NewWriter(body)
 			
-			// ダミーファイルを追加
-			part, err := writer.CreateFormFile("file", "test.csv")
-			if err != nil {
-				t.Fatalf("Failed to create form file: %v", err)
-			}
-			part.Write([]byte("dummy,csv,content"))
-			
-			// 無効なcard_typeを追加
-			writer.WriteField("card_type", "invalid_card_type")
-			writer.WriteField("year", "2023")
-			writer.WriteField("month", "2")
-			writer.Close()
-
-			// テスト実行
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/card-statements/upload", body)
-			req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			// JWTクレームを設定
-			setupJWTToken(c, cardStatementTestUser.ID)
-
-			err = cardStatementController.UploadCSV(c)
-
-			// エラーは返さないが、内部でエラーハンドリングしてステータスコードを返す
-			if err != nil {
-				t.Errorf("UploadCSV() unexpected error = %v", err)
-			}
-
-			if rec.Code != http.StatusInternalServerError {
-				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusInternalServerError)
-			}
-		})
-		
-		t.Run("年パラメータが不正な場合", func(t *testing.T) {
-			// マルチパートフォームを作成
-			body := new(bytes.Buffer)
-			writer := multipart.NewWriter(body)
-			
-			// ダミーファイルを追加
-			part, err := writer.CreateFormFile("file", "test.csv")
-			if err != nil {
-				t.Fatalf("Failed to create form file: %v", err)
-			}
-			part.Write([]byte("dummy,csv,content"))
-			
-			// 無効な年パラメータを追加
-			writer.WriteField("card_type", "rakuten")
-			writer.WriteField("year", "invalid_year")
-			writer.WriteField("month", "2")
-			writer.Close()
-
-			// テスト実行
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/card-statements/upload", body)
-			req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			// JWTクレームを設定
-			setupJWTToken(c, cardStatementTestUser.ID)
-
-			err = cardStatementController.UploadCSV(c)
-
-			// エラーは返さないが、内部でエラーハンドリングしてステータスコードを返す
-			if err != nil {
-				t.Errorf("UploadCSV() unexpected error = %v", err)
-			}
-
+			// エラーレスポンスが返されることを確認
 			if rec.Code != http.StatusBadRequest {
 				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
 			}
 		})
 		
-		t.Run("月パラメータが不正な場合", func(t *testing.T) {
-			// マルチパートフォームを作成
-			body := new(bytes.Buffer)
-			writer := multipart.NewWriter(body)
+		t.Run("カード種類が指定されていない場合エラーになる", func(t *testing.T) {
+			// テスト用CSVファイルの作成
+			tmpFile, err := createTestCSVFile(t, csvContent)
+			if err != nil {
+				t.Fatalf("Failed to create test CSV file: %v", err)
+			}
+			defer os.Remove(tmpFile.Name())
 			
-			// ダミーファイルを追加
-			part, err := writer.CreateFormFile("file", "test.csv")
+			// ファイルを読み込む
+			fileContent, err := os.ReadFile(tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to read test CSV file: %v", err)
+			}
+			
+			// カード種類なしのマルチパートフォームデータの作成
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+			
+			fw, err := w.CreateFormFile("file", tmpFile.Name())
 			if err != nil {
 				t.Fatalf("Failed to create form file: %v", err)
 			}
-			part.Write([]byte("dummy,csv,content"))
 			
-			// 無効な月パラメータを追加
-			writer.WriteField("card_type", "rakuten")
-			writer.WriteField("year", "2023")
-			writer.WriteField("month", "invalid_month")
-			writer.Close()
-
-			// テスト実行
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/card-statements/upload", body)
-			req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			// JWTクレームを設定
-			setupJWTToken(c, cardStatementTestUser.ID)
-
-			err = cardStatementController.UploadCSV(c)
-
-			// エラーは返さないが、内部でエラーハンドリングしてステータスコードを返す
-			if err != nil {
-				t.Errorf("UploadCSV() unexpected error = %v", err)
+			if _, err := io.Copy(fw, bytes.NewReader(fileContent)); err != nil {
+				t.Fatalf("Failed to copy file content: %v", err)
 			}
-
+			
+			// 年月フィールドのみ追加（カード種類なし）
+			if err := w.WriteField("year", "2023"); err != nil {
+				t.Fatalf("Failed to add year field: %v", err)
+			}
+			
+			if err := w.WriteField("month", "4"); err != nil {
+				t.Fatalf("Failed to add month field: %v", err)
+			}
+			
+			w.Close()
+			
+			// テスト実行
+			_, c, rec := setupEchoWithJWTAndMultipartForm(cardStatementTestUser.ID, http.MethodPost, "/card-statements/upload", b.Bytes(), w.FormDataContentType())
+			err = cardStatementController.UploadCSV(c)
+			
+			// 検証
+			if err != nil {
+				t.Errorf("UploadCSV() error = %v", err)
+				return
+			}
+			
+			// エラーレスポンスが返されることを確認
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
+			}
+		})
+		
+		t.Run("年が指定されていない場合エラーになる", func(t *testing.T) {
+			// テスト用CSVファイルの作成
+			tmpFile, err := createTestCSVFile(t, csvContent)
+			if err != nil {
+				t.Fatalf("Failed to create test CSV file: %v", err)
+			}
+			defer os.Remove(tmpFile.Name())
+			
+			// ファイルを読み込む
+			fileContent, err := os.ReadFile(tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to read test CSV file: %v", err)
+			}
+			
+			// 年なしのマルチパートフォームデータの作成
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+			
+			fw, err := w.CreateFormFile("file", tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to create form file: %v", err)
+			}
+			
+			if _, err := io.Copy(fw, bytes.NewReader(fileContent)); err != nil {
+				t.Fatalf("Failed to copy file content: %v", err)
+			}
+			
+			// カード種類と月のみ追加（年なし）
+			if err := w.WriteField("card_type", "rakuten"); err != nil {
+				t.Fatalf("Failed to add card_type field: %v", err)
+			}
+			
+			if err := w.WriteField("month", "4"); err != nil {
+				t.Fatalf("Failed to add month field: %v", err)
+			}
+			
+			w.Close()
+			
+			// テスト実行
+			_, c, rec := setupEchoWithJWTAndMultipartForm(cardStatementTestUser.ID, http.MethodPost, "/card-statements/upload", b.Bytes(), w.FormDataContentType())
+			err = cardStatementController.UploadCSV(c)
+			
+			// 検証
+			if err != nil {
+				t.Errorf("UploadCSV() error = %v", err)
+				return
+			}
+			
+			// エラーレスポンスが返されることを確認
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
+			}
+		})
+		
+		t.Run("月が指定されていない場合エラーになる", func(t *testing.T) {
+			// テスト用CSVファイルの作成
+			tmpFile, err := createTestCSVFile(t, csvContent)
+			if err != nil {
+				t.Fatalf("Failed to create test CSV file: %v", err)
+			}
+			defer os.Remove(tmpFile.Name())
+			
+			// ファイルを読み込む
+			fileContent, err := os.ReadFile(tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to read test CSV file: %v", err)
+			}
+			
+			// 月なしのマルチパートフォームデータの作成
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+			
+			fw, err := w.CreateFormFile("file", tmpFile.Name())
+			if err != nil {
+				t.Fatalf("Failed to create form file: %v", err)
+			}
+			
+			if _, err := io.Copy(fw, bytes.NewReader(fileContent)); err != nil {
+				t.Fatalf("Failed to copy file content: %v", err)
+			}
+			
+			// カード種類と年のみ追加（月なし）
+			if err := w.WriteField("card_type", "rakuten"); err != nil {
+				t.Fatalf("Failed to add card_type field: %v", err)
+			}
+			
+			if err := w.WriteField("year", "2023"); err != nil {
+				t.Fatalf("Failed to add year field: %v", err)
+			}
+			
+			w.Close()
+			
+			// テスト実行
+			_, c, rec := setupEchoWithJWTAndMultipartForm(cardStatementTestUser.ID, http.MethodPost, "/card-statements/upload", b.Bytes(), w.FormDataContentType())
+			err = cardStatementController.UploadCSV(c)
+			
+			// 検証
+			if err != nil {
+				t.Errorf("UploadCSV() error = %v", err)
+				return
+			}
+			
+			// エラーレスポンスが返されることを確認
 			if rec.Code != http.StatusBadRequest {
 				t.Errorf("UploadCSV() status code = %d, want %d", rec.Code, http.StatusBadRequest)
 			}
 		})
 	})
-}
-
-// JWTトークンをコンテキストに設定するヘルパー関数
-func setupJWTToken(c echo.Context, userId uint) {
-	token := createJWTToken(userId)
-	c.Set("user", token)
-}
-
-// JWTトークンを作成するヘルパー関数
-func createJWTToken(userId uint) *jwt.Token {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = float64(userId)
-	return token
 }

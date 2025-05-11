@@ -82,6 +82,9 @@ definitions:
       installment_count:
         example: 1
         type: integer
+      month:
+        example: 4
+        type: integer
       monthly_rate:
         example: 0
         type: number
@@ -112,6 +115,9 @@ definitions:
       use_date:
         example: 2023/01/01
         type: string
+      year:
+        example: 2023
+        type: integer
     type: object
   model.CardStatementSaveRequest:
     properties:

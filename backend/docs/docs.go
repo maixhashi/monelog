@@ -1221,6 +1221,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "month": {
+                    "type": "integer",
+                    "example": 4
+                },
                 "monthly_rate": {
                     "type": "number",
                     "example": 0
@@ -1260,6 +1264,10 @@ const docTemplate = `{
                 "use_date": {
                     "type": "string",
                     "example": "2023/01/01"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2023
                 }
             }
         },

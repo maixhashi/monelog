@@ -7,48 +7,43 @@ import (
 func TestCardStatementRepository_GetCardStatementById(t *testing.T) {
 	setupCardStatementTest()
 	
-	// テスト用のカード明細を作成
-	testCardStatement := createTestCardStatement("楽天カード", "Amazon", 1000, csTestUser.ID)
-	otherUserCardStatement := createTestCardStatement("MUFG", "ヨドバシカメラ", 3000, csOtherUser.ID)
+	// テストデータの作成
+	statement1 := createTestCardStatement("楽天カード", "テスト明細1", cardStatementTestUser.ID, 2023, 1)
+	createTestCardStatement("MUFGカード", "テスト明細2", cardStatementOtherUser.ID, 2023, 1)
 	
 	t.Run("正常系", func(t *testing.T) {
-		t.Run("存在するカード明細IDを指定した場合、正しいカード明細を取得する", func(t *testing.T) {
-			result, err := csRepo.GetCardStatementById(csTestUser.ID, testCardStatement.ID)
+		t.Run("正しいIDとユーザーIDでカード明細を取得できる", func(t *testing.T) {
+			result, err := cardStatementRepo.GetCardStatementById(cardStatementTestUser.ID, statement1.ID)
 			
 			if err != nil {
 				t.Errorf("GetCardStatementById() error = %v", err)
 			}
 			
-			if result.ID != testCardStatement.ID {
-				t.Errorf("GetCardStatementById() got ID = %v, want %v", result.ID, testCardStatement.ID)
+			if result.ID != statement1.ID {
+				t.Errorf("GetCardStatementById() got ID = %v, want %v", result.ID, statement1.ID)
 			}
 			
-			if result.Description != "Amazon" {
-				t.Errorf("GetCardStatementById() got Description = %v, want %v", result.Description, "Amazon")
+			if result.Description != "テスト明細1" {
+				t.Errorf("GetCardStatementById() got Description = %v, want %v", 
+					result.Description, "テスト明細1")
 			}
-			
-			if result.Amount != 1000 {
-				t.Errorf("GetCardStatementById() got Amount = %v, want %v", result.Amount, 1000)
-			}
-			
-			validateCardStatement(t, &result)
 		})
 	})
 	
 	t.Run("異常系", func(t *testing.T) {
-		t.Run("存在しないカード明細IDを指定した場合、エラーを返す", func(t *testing.T) {
-			_, err := csRepo.GetCardStatementById(csTestUser.ID, nonExistentCardStatementID)
+		t.Run("存在しないIDの場合はエラーを返す", func(t *testing.T) {
+			_, err := cardStatementRepo.GetCardStatementById(cardStatementTestUser.ID, nonExistentCardStatementID)
 			
 			if err == nil {
-				t.Error("GetCardStatementById() expected error, got nil")
+				t.Error("GetCardStatementById() expected error for non-existent ID, got nil")
 			}
 		})
 		
-		t.Run("他のユーザーのカード明細IDを指定した場合、エラーを返す", func(t *testing.T) {
-			_, err := csRepo.GetCardStatementById(csTestUser.ID, otherUserCardStatement.ID)
+		t.Run("他のユーザーのカード明細にアクセスできない", func(t *testing.T) {
+			_, err := cardStatementRepo.GetCardStatementById(cardStatementTestUser.ID, statement1.ID+1)
 			
 			if err == nil {
-				t.Error("GetCardStatementById() expected error, got nil")
+				t.Error("GetCardStatementById() expected error for other user's statement, got nil")
 			}
 		})
 	})

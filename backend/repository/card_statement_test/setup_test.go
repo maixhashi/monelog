@@ -8,21 +8,17 @@ import (
 )
 
 var (
-	csDB *gorm.DB
-	csRepo repository.ICardStatementRepository
-	csTestUser model.User
-	csOtherUser model.User
+	cardStatementDB *gorm.DB
+	cardStatementRepo repository.ICardStatementRepository
+	cardStatementTestUser model.User
+	cardStatementOtherUser model.User
 	nonExistentCardStatementID uint = 9999
 )
 
 func setupCardStatementTest() {
-	csDB = testutils.SetupTestDB()
+	cardStatementDB = testutils.SetupTestDB()
+	cardStatementRepo = repository.NewCardStatementRepository(cardStatementDB)
 	
-	// テストデータベースにマイグレーションを実行
-	csDB.AutoMigrate(&model.CardStatement{})
-	
-	csRepo = repository.NewCardStatementRepository(csDB)
-	
-	csTestUser = testutils.CreateTestUser(csDB)
-	csOtherUser = testutils.CreateOtherUser(csDB)
+	cardStatementTestUser = testutils.CreateTestUser(cardStatementDB)
+	cardStatementOtherUser = testutils.CreateOtherUser(cardStatementDB)
 }

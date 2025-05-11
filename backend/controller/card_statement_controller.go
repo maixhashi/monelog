@@ -128,6 +128,8 @@ func (csc *cardStatementController) UploadCSV(c echo.Context) error {
 	request := model.CardStatementRequest{
 		CardType: cardType,
 		UserId:   userId,
+		Year:     year,
+		Month:    month,
 	}
 	
 	// CSVの処理
@@ -189,14 +191,30 @@ func (csc *cardStatementController) PreviewCSV(c echo.Context) error {
 	}
 	
 	// 年月の取得（プレビュー時は任意）
-	// yearStr := c.FormValue("year")
-	// monthStr := c.FormValue("month")
+	yearStr := c.FormValue("year")
+	monthStr := c.FormValue("month")
 	
-	// 年月情報はプレビュー時には使用しないが、フロントエンドからの送信を許可
+	// 年月の変換
+	var year, month int
+	if yearStr != "" {
+		year, err = strconv.Atoi(yearStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
+		}
+	}
+	
+	if monthStr != "" {
+		month, err = strconv.Atoi(monthStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
+		}
+	}
 	
 	request := model.CardStatementPreviewRequest{
 		CardType: cardType,
 		UserId:   userId,
+		Year:     year,
+		Month:    month,
 	}
 	
 	// CSVのプレビュー処理
@@ -232,9 +250,17 @@ func (csc *cardStatementController) SaveCardStatements(c echo.Context) error {
 	
 	request.UserId = userId
 	
-	// Ensure year and month are valid
-	if request.Year < 0 || request.Month < 1 || request.Month > 12 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year or month"})
+	// リクエストの検証を強化
+	if request.Year <= 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Year must be positive"})
+	}
+	
+	if request.Month < 1 || request.Month > 12 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Month must be between 1 and 12"})
+	}
+	
+	if len(request.CardStatements) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Card statements cannot be empty"})
 	}
 	
 	// カード明細の保存

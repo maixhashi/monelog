@@ -50,7 +50,11 @@ export const initialEditedCardStatement: EditedCardStatement = {
 export interface CardStatementState {
   editedCardStatement: EditedCardStatement;
   cardStatementSummaries: CardStatementSummary[];
+  selectedYear: number;
+  selectedMonth: number;
   updateEditedCardStatement: (payload: EditedCardStatement) => void;
   setCardStatementSummaries: (summaries: CardStatementSummary[]) => void;
   resetEditedCardStatement: () => void;
+  setSelectedYear: (year: number) => void;
+  setSelectedMonth: (month: number) => void;
 }

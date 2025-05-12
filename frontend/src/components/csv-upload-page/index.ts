@@ -1,3 +1,5 @@
+export { YearPagination } from './YearPagination';
+export { MonthSelector } from './MonthSelector';
 export { Header } from './Header';
 export { Instructions } from './Instructions';
 export { FileUploader } from './FileUploader';

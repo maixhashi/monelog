@@ -19,22 +19,22 @@ export const useMutateCardStatements = () => {
     },
   });
 
-  // 新しいプレビューミューテーション
+  // 年・月を受け取るように修正
   const previewCSVMutation = useMutation({
-    mutationFn: ({ file, cardType }: { file: File, cardType: CardType }) => 
-      previewCSV(file, cardType),
+    mutationFn: ({ file, cardType, year, month }: { file: File, cardType: CardType, year: number, month: number }) => 
+      previewCSV(file, cardType, year, month),
     onError: (err: any) => {
       console.error('CSVプレビューエラー:', err);
       throw err;
     },
   });
 
-  // 保存ミューテーション
+  // 年・月を受け取るように修正
   const saveCardStatementsMutation = useMutation({
-    mutationFn: ({ cardStatements, cardType }: { cardStatements: CardStatementSummary[], cardType: CardType }) => {
+    mutationFn: ({ cardStatements, cardType, year, month }: { cardStatements: CardStatementSummary[], cardType: CardType, year: number, month: number }) => {
       console.log('保存するデータ（変換前）:', JSON.stringify(cardStatements, null, 2));
       console.log('カード種類:', cardType);
-      return saveCardStatements(cardStatements, cardType);
+      return saveCardStatements(cardStatements, cardType, year, month);
     },
     onSuccess: (data) => {
       console.log('保存成功:', JSON.stringify(data, null, 2));

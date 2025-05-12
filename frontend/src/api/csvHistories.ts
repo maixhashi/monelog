@@ -21,18 +21,16 @@ export const fetchCSVHistoryById = async (id: number): Promise<CSVHistoryDetailR
 };
 
 // CSV履歴を保存
-export const saveCSVHistory = async (file: File, fileName: string, cardType: CardType): Promise<CSVHistoryResponse> => {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('file_name', fileName);
-  formData.append('card_type', cardType);
-
-  const response = await axios.post<CSVHistoryResponse>(`${API_URL}/csv-histories`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    withCredentials: true,
-  });
+export const saveCSVHistory = async (formData: FormData) => {
+  const response = await axios.post(
+    `${process.env.REACT_APP_API_URL}/csv-histories`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
   return response.data;
 };
 

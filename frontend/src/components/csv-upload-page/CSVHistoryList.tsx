@@ -1,192 +1,78 @@
-import React, { useState } from 'react'
-import { 
-  Box, 
-  Typography, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  ListItemSecondaryAction, 
-  IconButton, 
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  CircularProgress,
-  Collapse,
-  Paper
-} from '@mui/material'
-import { Delete, Download, History, ExpandMore, ExpandLess } from '@mui/icons-material'
-import { useQueryCsvHistories } from '../../hooks/queryHooks/useQueryCsvHistories'
+import React from 'react'
+import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
+import DeleteIcon from '@mui/icons-material/Delete'
+import { CsvHistoryResponse } from '../../hooks/queryHooks/useQueryCsvHistoriesByMonth'
 import { useMutateCsvHistories } from '../../hooks/mutateHooks/useMutateCsvHistories'
-import { downloadCSVHistory } from '../../api/csvHistories'
 import { format } from 'date-fns'
-import { ja } from 'date-fns/locale'
-import { CSVHistoryResponse } from '../../types/models/csvHistory'
-import { CardType } from '../../types/cardType'
+import { cardTypeDisplayNames, CardType } from '../../types/cardType'
 
-export const CSVHistoryList: React.FC = () => {
-  const { data: csvHistories, isLoading, isError } = useQueryCsvHistories()
+type Props = {
+  histories?: CsvHistoryResponse[]
+  isLoading?: boolean
+}
+
+export const CSVHistoryList: React.FC<Props> = ({ histories = [], isLoading = false }) => {
   const { deleteCSVHistoryMutation } = useMutateCsvHistories()
-  const [open, setOpen] = useState(false)
-  const [selectedHistory, setSelectedHistory] = useState<CSVHistoryResponse | null>(null)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [showHistories, setShowHistories] = useState(false)
 
-  const handleDeleteClick = (history: CSVHistoryResponse) => {
-    setSelectedHistory(history)
-    setOpen(true)
+  const handleDownload = (id: number) => {
+    window.open(`${process.env.REACT_APP_API_URL}/csv-histories/${id}/download`, '_blank')
   }
 
-  const handleDeleteConfirm = async () => {
-    if (selectedHistory && selectedHistory.id !== undefined) {
+  const handleDelete = async (id: number) => {
+    if (window.confirm('このCSV履歴を削除しますか？')) {
       try {
-        await deleteCSVHistoryMutation.mutateAsync(selectedHistory.id)
-        setOpen(false)
-        setSelectedHistory(null)
+        await deleteCSVHistoryMutation.mutateAsync(id)
       } catch (error) {
         console.error('CSV履歴削除エラー:', error)
       }
     }
   }
 
-  const handleDownload = async (history: CSVHistoryResponse) => {
-    if (history.id !== undefined && history.file_name) {
-      try {
-        setIsDownloading(true)
-        await downloadCSVHistory(history.id, history.file_name)
-      } catch (error) {
-        console.error('CSV履歴ダウンロードエラー:', error)
-      } finally {
-        setIsDownloading(false)
-      }
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return format(date, 'yyyy年MM月dd日 HH:mm', { locale: ja })
-    } catch (error) {
-      return dateString
-    }
-  }
-
-  const getCardTypeLabel = (cardType: string): string => {
-    const cardTypes: Record<string, string> = {
-      'rakuten': '楽天カード',
-      'mufg': 'MUFGカード',
-      'epos': 'エポスカード'
-    }
-    return cardTypes[cardType as CardType] || cardType
-  }
-
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <Typography>読み込み中...</Typography>
   }
 
-  if (isError) {
-    return (
-      <Box sx={{ mt: 4 }}>
-        <Typography color="error">CSV履歴の取得中にエラーが発生しました。</Typography>
-      </Box>
-    )
+  if (histories.length === 0) {
+    return <Typography sx={{ mt: 2 }}>この月のCSV履歴はありません</Typography>
   }
 
   return (
-    <Paper sx={{ mt: 4, p: 2 }}>
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          cursor: 'pointer',
-          mb: 1
-        }}
-        onClick={() => setShowHistories(!showHistories)}
-      >
-        <History color="primary" sx={{ mr: 1 }} />
-        <Typography variant="h6" component="div">
-          CSV履歴
-        </Typography>
-        {showHistories ? <ExpandLess /> : <ExpandMore />}
-      </Box>
-      
-      <Collapse in={showHistories}>
-        {csvHistories && csvHistories.length > 0 ? (
-          <List>
-            {csvHistories.map((history) => (
-              <React.Fragment key={history.id}>
-                <ListItem>
-                  <ListItemText
-                    primary={history.file_name}
-                    secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="text.primary">
-                          {getCardTypeLabel(history.card_type || '')}
-                        </Typography>
-                        {` - ${formatDate(history.created_at || '')}`}
-                      </>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="download"
-                      onClick={() => handleDownload(history)}
-                      disabled={isDownloading}
-                    >
-                      <Download />
-                    </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="delete"
-                      onClick={() => handleDeleteClick(history)}
-                      disabled={deleteCSVHistoryMutation.isLoading}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-                <Divider />
-              </React.Fragment>
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h6" gutterBottom>
+        CSV履歴一覧
+      </Typography>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ファイル名</TableCell>
+              <TableCell>カード種類</TableCell>
+              <TableCell>アップロード日時</TableCell>
+              <TableCell align="right">操作</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {histories.map((history) => (
+              <TableRow key={history.id}>
+                <TableCell>{history.file_name}</TableCell>
+                <TableCell>
+                  {cardTypeDisplayNames[history.card_type as CardType] || history.card_type}
+                </TableCell>
+                <TableCell>{format(new Date(history.created_at), 'yyyy/MM/dd HH:mm')}</TableCell>
+                <TableCell align="right">
+                  <IconButton onClick={() => handleDownload(history.id)} title="ダウンロード">
+                    <DownloadIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(history.id)} title="削除">
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
             ))}
-          </List>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-            保存されたCSV履歴はありません。
-          </Typography>
-        )}
-      </Collapse>
-
-      {/* 削除確認ダイアログ */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-      >
-        <DialogTitle>CSV履歴の削除</DialogTitle>
-        <DialogContent>
-          <Typography>
-            「{selectedHistory?.file_name}」を削除してもよろしいですか？
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} disabled={deleteCSVHistoryMutation.isLoading}>
-            キャンセル
-          </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error"
-            disabled={deleteCSVHistoryMutation.isLoading}
-          >
-            {deleteCSVHistoryMutation.isLoading ? <CircularProgress size={24} /> : '削除'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   )
 }

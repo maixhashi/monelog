@@ -7,8 +7,27 @@ export const useMutateCsvHistories = () => {
 
   // CSV履歴保存ミューテーション
   const saveCSVHistoryMutation = useMutation({
-    mutationFn: ({ file, fileName, cardType }: { file: File, fileName: string, cardType: CardType }) => 
-      saveCSVHistory(file, fileName, cardType),
+    mutationFn: async ({
+      file,
+      fileName,
+      cardType,
+      year,
+      month,
+    }: {
+      file: File;
+      fileName: string;
+      cardType: CardType;
+      year: number;
+      month: number;
+    }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('file_name', fileName);
+      formData.append('card_type', cardType);
+      formData.append('year', String(year));
+      formData.append('month', String(month));
+      return saveCSVHistory(formData);
+    },
     onSuccess: () => {
       // 成功時にCSV履歴一覧を再取得
       queryClient.invalidateQueries({ queryKey: ['csvHistories'] });

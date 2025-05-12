@@ -2,6 +2,8 @@ import axios from 'axios';
 import { CardStatementSummary } from '../types/models/cardStatement';
 import { CardType } from '../types/cardType';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 // カード明細一覧を取得
 export const fetchCardStatements = async (): Promise<CardStatementSummary[]> => {
   const response = await axios.get(`${process.env.REACT_APP_API_URL}/card-statements`);
@@ -34,10 +36,12 @@ export const uploadCSV = async (file: File, cardType: CardType): Promise<CardSta
 };
 
 // CSVファイルをプレビュー（保存なし）
-export const previewCSV = async (file: File, cardType: CardType): Promise<CardStatementSummary[]> => {
+export const previewCSV = async (file: File, cardType: string, year: number, month: number): Promise<CardStatementSummary[]> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('card_type', cardType);
+    formData.append('year', String(year));
+    formData.append('month', String(month));
     
     const response = await axios.post(
       `${process.env.REACT_APP_API_URL}/card-statements/preview`, 
@@ -55,15 +59,16 @@ export const previewCSV = async (file: File, cardType: CardType): Promise<CardSt
   // プレビューしたデータを保存
   export const saveCardStatements = async (
     cardStatements: CardStatementSummary[], 
-    cardType: CardType
+    cardType: string,
+    year: number,
+    month: number
   ): Promise<CardStatementSummary[]> => {
     // 必要なフィールドが全て含まれていることを確認
     const payload = {
       card_statements: cardStatements.map(statement => ({
-        // フロントエンドの型（camelCase）からバックエンドの型（snake_case）へ変換
         type: statement.type,
         statement_no: statement.statementNo,
-        card_type: statement.cardType || cardType, // cardTypeを使用
+        card_type: statement.cardType || cardType,
         description: statement.description,
         use_date: statement.useDate,
         payment_date: statement.paymentDate,
@@ -77,13 +82,15 @@ export const previewCSV = async (file: File, cardType: CardType): Promise<CardSt
         annual_rate: statement.annualRate,
         monthly_rate: statement.monthlyRate
       })),
-      card_type: cardType
+      card_type: cardType,
+      year: year,
+      month: month,
     };
     
     console.log('APIに送信するペイロード:', JSON.stringify(payload, null, 2));
     
     const response = await axios.post(
-      `${process.env.REACT_APP_API_URL}/card-statements/save`,
+      `${API_URL}/card-statements/save`,
       payload,
       {
         headers: {
@@ -92,7 +99,7 @@ export const previewCSV = async (file: File, cardType: CardType): Promise<CardSt
       }
     );
     
-    return mapResponseToSummaries(response.data);
+    return response.data;
   };
   
 // バックエンドのレスポンスをフロントエンドの型に変換するヘルパー関数

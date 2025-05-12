@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Container, Alert, Snackbar, Button, Box } from '@mui/material';
+import { Container, Alert, Snackbar, Button, Box, CircularProgress } from '@mui/material';
 import useStore from '../store';
 import { CardType } from '../types/cardType';
 import { 
@@ -10,12 +10,23 @@ import {
   Footer,
   CsvPreview,
   CSVHistorySaver,
-  CSVHistoryList
+  CSVHistoryList,
+  YearPagination,
+  MonthSelector
 } from '../components/csv-upload-page';
 import { useMutateCardStatements } from '../hooks/mutateHooks/useMutateCardStatements';
+import { useQueryCardStatementsByMonth } from '../hooks/queryHooks/useQueryCardStatementsByMonth';
+import { useQueryCsvHistoriesByMonth } from '../hooks/queryHooks/useQueryCsvHistoriesByMonth';
 
 export const CsvUploadPage = () => {
-  const { setCardStatementSummaries, cardStatementSummaries } = useStore();
+  const { 
+    setCardStatementSummaries,
+    cardStatementSummaries,
+    selectedYear,
+    selectedMonth,
+    setSelectedYear,
+    setSelectedMonth
+  } = useStore();
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -26,6 +37,29 @@ export const CsvUploadPage = () => {
 
   // APIミューテーションフックを使用
   const { previewCSVMutation, saveCardStatementsMutation } = useMutateCardStatements();
+  
+  // 選択中の年月のカード明細を取得
+  const { 
+    data: monthlyCardStatements = [], 
+    isLoading: isCardStatementsLoading 
+  } = useQueryCardStatementsByMonth(selectedYear, selectedMonth);
+  
+  // 選択中の年月のCSV履歴を取得
+  const { 
+    data: monthlyCsvHistories = [], 
+    isLoading: isCsvHistoriesLoading 
+  } = useQueryCsvHistoriesByMonth(selectedYear, selectedMonth);
+
+  // カード明細をソート（statementNo, paymentCount順）
+  const sortedCardStatements = [...monthlyCardStatements].sort((a, b) => {
+    if (a.statementNo !== b.statementNo) return a.statementNo - b.statementNo;
+    return a.paymentCount - b.paymentCount;
+  });
+
+  // CSV履歴をソート（作成日時の降順）
+  const sortedCsvHistories = [...monthlyCsvHistories].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   // CSVをアップロードしてプレビュー（データベースには保存しない）
   const processCSV = useCallback(async () => {
@@ -35,13 +69,14 @@ export const CsvUploadPage = () => {
     setError(null);
     
     try {
-      // バックエンドAPIを使用してCSVをプレビュー（DBには保存しない）
+      // 年・月を渡す
       const result = await previewCSVMutation.mutateAsync({
         file: csvFile,
-        cardType: cardType
+        cardType: cardType,
+        year: selectedYear,
+        month: selectedMonth,
       });
       
-      // 結果をストアに保存（一時的なプレビューデータ）
       setCardStatementSummaries(result);
       setPreviewData(true);
     } catch (error: any) {
@@ -50,7 +85,7 @@ export const CsvUploadPage = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [csvFile, cardType, setCardStatementSummaries, previewCSVMutation]);
+  }, [csvFile, cardType, selectedYear, selectedMonth, setCardStatementSummaries, previewCSVMutation]);
 
   // プレビューデータをデータベースに保存
   const saveData = useCallback(async () => {
@@ -60,7 +95,6 @@ export const CsvUploadPage = () => {
     setError(null);
     
     try {
-      // すべての必要なフィールドを明示的にマッピング（キャメルケースを使用）
       const mappedStatements = cardStatementSummaries.map(statement => ({
         type: statement.type || "発生",
         statementNo: statement.statementNo || 0,
@@ -78,15 +112,15 @@ export const CsvUploadPage = () => {
         annualRate: Number(statement.annualRate) || 0,
         monthlyRate: Number(statement.monthlyRate) || 0,
       }));
-      
-      console.log('送信するデータ:', JSON.stringify(mappedStatements, null, 2));
-      
+
+      // 年・月を渡す
       const result = await saveCardStatementsMutation.mutateAsync({
         cardStatements: mappedStatements,
-        cardType: cardType
+        cardType: cardType,
+        year: selectedYear,
+        month: selectedMonth,
       });
       
-      // 保存完了後の処理
       setPreviewData(false);
     } catch (error: any) {
       console.error('データ保存エラー:', error);
@@ -94,7 +128,7 @@ export const CsvUploadPage = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [cardStatementSummaries, cardType, saveCardStatementsMutation]);
+  }, [cardStatementSummaries, cardType, selectedYear, selectedMonth, saveCardStatementsMutation]);
 
   const clearResults = useCallback(() => {
     setCsvFile(null);
@@ -105,6 +139,10 @@ export const CsvUploadPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* 年・月セレクターを追加 */}
+      <YearPagination year={selectedYear} setYear={setSelectedYear} />
+      <MonthSelector month={selectedMonth} setMonth={setSelectedMonth} />
+      
       <Header 
         showInstructions={showInstructions} 
         setShowInstructions={setShowInstructions} 
@@ -125,7 +163,14 @@ export const CsvUploadPage = () => {
       <CsvPreview file={csvFile} maxRows={10} />
       
       {/* CSV履歴保存コンポーネント */}
-      {csvFile && <CSVHistorySaver file={csvFile} />}
+      {csvFile && (
+        <CSVHistorySaver
+          file={csvFile}
+          year={selectedYear}
+          month={selectedMonth}
+          cardType={cardType}
+        />
+      )}
       
       {/* エラー表示 */}
       <Snackbar 
@@ -153,15 +198,38 @@ export const CsvUploadPage = () => {
           </Box>
         )}
         
-        <ResultsTable 
-          cardStatementSummaries={cardStatementSummaries}
-          clearResults={clearResults}
-          isPreviewData={previewData}
-        />
+        {/* プレビューデータがある場合はそれを表示、なければ月別データを表示 */}
+        {previewData ? (
+          <ResultsTable 
+            cardStatementSummaries={cardStatementSummaries}
+            clearResults={clearResults}
+            isPreviewData={previewData}
+          />
+        ) : (
+          <>
+            {isCardStatementsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <ResultsTable 
+                cardStatementSummaries={sortedCardStatements}
+                clearResults={clearResults}
+                isPreviewData={false}
+              />
+            )}
+          </>
+        )}
       </Box>
       
       {/* CSV履歴一覧コンポーネント */}
-      <CSVHistoryList />
+      {isCsvHistoriesLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <CSVHistoryList histories={sortedCsvHistories} isLoading={isCsvHistoriesLoading} />
+      )}
       
       <Footer />
     </Container>

@@ -4,22 +4,23 @@ import { CardTypeSelector } from './CardTypeSelector';
 import { CardType } from '../../types/cardType';
 import { useMutateCsvHistories } from '../../hooks/mutateHooks/useMutateCsvHistories';
 
-interface CSVHistorySaverProps {
-  file: File | null;
-}
+type Props = {
+  file: File;
+  year: number;
+  month: number;
+  cardType: CardType;
+};
 
-export const CSVHistorySaver: React.FC<CSVHistorySaverProps> = ({ file }) => {
+export const CSVHistorySaver: React.FC<Props> = ({ file, year, month, cardType: initialCardType }) => {
   const [open, setOpen] = useState(false);
-  const [fileName, setFileName] = useState('');
-  const [cardType, setCardType] = useState<CardType>('rakuten');
+  const [fileName, setFileName] = useState(file.name);
+  const [cardType, setCardType] = useState<CardType>(initialCardType);
   const { saveCSVHistoryMutation } = useMutateCsvHistories();
   const isLoading = saveCSVHistoryMutation.isLoading;
 
   const handleOpen = () => {
-    if (file) {
-      setFileName(file.name); // デフォルトでファイル名をセット
-      setOpen(true);
-    }
+    setFileName(file.name); // デフォルトでファイル名をセット
+    setOpen(true);
   };
 
   const handleClose = () => {
@@ -33,7 +34,9 @@ export const CSVHistorySaver: React.FC<CSVHistorySaverProps> = ({ file }) => {
       await saveCSVHistoryMutation.mutateAsync({
         file,
         fileName,
-        cardType
+        cardType,
+        year,
+        month,
       });
       handleClose();
     } catch (error) {

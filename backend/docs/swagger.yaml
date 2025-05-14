@@ -1,5 +1,13 @@
 basePath: /
 definitions:
+  model.AuthVerifyResponse:
+    properties:
+      authenticated:
+        example: true
+        type: boolean
+      user:
+        $ref: '#/definitions/model.UserResponse'
+    type: object
   model.CSVHistoryDetailResponse:
     properties:
       card_type:
@@ -254,6 +262,29 @@ info:
   title: Blog CMS API
   version: "1.0"
 paths:
+  /auth-verify:
+    get:
+      consumes:
+      - application/json
+      description: ユーザーの認証状態を確認し、認証済みの場合はユーザー情報を返す
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.AuthVerifyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 認証状態の確認
+      tags:
+      - users
   /card-statements:
     get:
       consumes:

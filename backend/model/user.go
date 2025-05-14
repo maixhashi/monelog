@@ -49,3 +49,9 @@ func (u *User) ToUserResponse() UserResponse {
 		Email: u.Email,
 	}
 }
+
+// AuthVerifyResponse は認証状態確認のレスポンス
+type AuthVerifyResponse struct {
+	Authenticated bool         `json:"authenticated" example:"true"`
+	User          UserResponse `json:"user,omitempty"`
+}

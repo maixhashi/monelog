@@ -14,6 +14,7 @@ import (
 type IUserUsecase interface {
 	SignUp(req model.UserSignupRequest) (*model.UserResponse, error)
 	Login(req model.UserLoginRequest) (string, error)
+	VerifyAuth(userId uint) (*model.UserResponse, error) // 追加
 }
 
 type userUsecase struct {
@@ -76,4 +77,17 @@ func (uu *userUsecase) Login(req model.UserLoginRequest) (string, error) {
 	})
 	
 	return token.SignedString([]byte(os.Getenv("SECRET")))
+}
+
+// VerifyAuth は認証状態を確認し、ユーザー情報を返します
+func (uu *userUsecase) VerifyAuth(userId uint) (*model.UserResponse, error) {
+	// ユーザーIDからユーザー情報を取得
+	user, err := uu.ur.GetUserById(userId)
+	if err != nil {
+		return nil, err
+	}
+	
+	// レスポンス作成
+	response := user.ToUserResponse()
+	return &response, nil
 }

@@ -38,3 +38,20 @@ export const getCurrentUser = async (): Promise<User> => {
   // ログイン時に保存したユーザー情報をローカルストレージから取得するなどの対応が必要
   throw new Error('Not implemented: getCurrentUser endpoint is not available in backend');
 };
+
+// 認証状態確認のレスポンス型
+export interface AuthVerifyResponse {
+  authenticated: boolean;
+  user?: User;
+}
+
+// 認証状態を確認する関数
+export const verifyAuth = async (): Promise<AuthVerifyResponse> => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/auth-verify`);
+    return response.data;
+  } catch (error) {
+    // エラーが発生した場合は未認証状態として扱う
+    return { authenticated: false };
+  }
+};

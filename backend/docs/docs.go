@@ -15,6 +15,43 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth-verify": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "ユーザーの認証状態を確認し、認証済みの場合はユーザー情報を返す",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "認証状態の確認",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.AuthVerifyResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/card-statements": {
             "get": {
                 "description": "ログインユーザーのすべてのカード明細を取得する",
@@ -1110,6 +1147,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.AuthVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "authenticated": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "user": {
+                    "$ref": "#/definitions/model.UserResponse"
+                }
+            }
+        },
         "model.CSVHistoryDetailResponse": {
             "type": "object",
             "properties": {

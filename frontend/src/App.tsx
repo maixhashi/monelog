@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { AuthPage } from './pages/AuthPage'
 import { TaskManagerPage } from './pages/TaskManagerPage'
 import { CsvUploadPage } from './pages/CsvUploadPage'
 import axios from 'axios'
 import { CsrfToken } from './types'
 import { CardStatementsPage } from './pages/CardStatementsPage'
+import { PublicRoute } from './components/route/PublicRoute'
+import { AuthenticatedRoute } from './components/route/AuthenticatedRoute'
+import { Layout } from './components/layout/Layout'
 
 function App() {
   useEffect(() => {
@@ -18,15 +21,30 @@ function App() {
     }
     getCsrfToken()
   }, [])
+  
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AuthPage />} />
-        <Route path="/task-manager" element={<TaskManagerPage />} />
-        <Route path="/csv-upload" element={<CsvUploadPage />} />
-        <Route path="/card-statements-page" element={<CardStatementsPage />} />
+        {/* 未認証ユーザー向けルート */}
+        <Route element={<PublicRoute />}>
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/login" element={<AuthPage />} />
+        </Route>
+        
+        {/* 認証済みユーザー向けルート */}
+        <Route element={<AuthenticatedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/task-manager" element={<TaskManagerPage />} />
+            <Route path="/csv-upload" element={<CsvUploadPage />} />
+            <Route path="/card-statements-page" element={<CardStatementsPage />} />
+          </Route>
+        </Route>
+        
+        {/* 存在しないパスへのリダイレクト */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )
 }
+
 export default App

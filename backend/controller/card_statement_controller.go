@@ -1,11 +1,8 @@
 package controller
 
 import (
-	"log"
-	"monelog/model"
+	"monelog/controller/card_statement"
 	"monelog/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,13 +15,15 @@ type ICardStatementController interface {
 	PreviewCSV(c echo.Context) error
 	SaveCardStatements(c echo.Context) error
 }
+
 type cardStatementController struct {
-	csu usecase.ICardStatementUsecase
-	chu usecase.ICSVHistoryUsecase
+	handler *card_statement.Handler
 }
 
 func NewCardStatementController(csu usecase.ICardStatementUsecase, chu usecase.ICSVHistoryUsecase) ICardStatementController {
-	return &cardStatementController{csu, chu}
+	return &cardStatementController{
+		handler: card_statement.NewHandler(csu, chu),
+	}
 }
 
 // GetAllCardStatements ユーザーのすべてのカード明細を取得
@@ -37,16 +36,7 @@ func NewCardStatementController(csu usecase.ICardStatementUsecase, chu usecase.I
 // @Failure 500 {object} map[string]string
 // @Router /card-statements [get]
 func (csc *cardStatementController) GetAllCardStatements(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	cardStatementsRes, err := csc.csu.GetAllCardStatements(userId)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return c.JSON(http.StatusOK, cardStatementsRes)
+	return csc.handler.GetAllCardStatements(c)
 }
 
 // GetCardStatementById 指定されたIDのカード明細を取得
@@ -61,22 +51,7 @@ func (csc *cardStatementController) GetAllCardStatements(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/{cardStatementId} [get]
 func (csc *cardStatementController) GetCardStatementById(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	id := c.Param("cardStatementId")
-	cardStatementId, err := strconv.ParseUint(id, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid card statement ID"})
-	}
-	
-	cardStatementRes, err := csc.csu.GetCardStatementById(userId, uint(cardStatementId))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return c.JSON(http.StatusOK, cardStatementRes)
+	return csc.handler.GetCardStatementById(c)
 }
 
 // UploadCSV CSVファイルをアップロードして解析
@@ -94,68 +69,7 @@ func (csc *cardStatementController) GetCardStatementById(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/upload [post]
 func (csc *cardStatementController) UploadCSV(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	// ファイルの取得
-	file, err := c.FormFile("file")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "ファイルが見つかりません"})
-	}
-	
-	// カード種類の取得
-	cardType := c.FormValue("card_type")
-	if cardType == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "card_type is required"})
-	}
-	
-	// 年月の取得（CSVHistoryにも保存するため）
-	yearStr := c.FormValue("year")
-	monthStr := c.FormValue("month")
-	
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
-	}
-	
-	month, err := strconv.Atoi(monthStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
-	}
-	
-	request := model.CardStatementRequest{
-		CardType: cardType,
-		UserId:   userId,
-		Year:     year,
-		Month:    month,
-	}
-	
-	// CSVの処理
-	cardStatementsRes, err := csc.csu.ProcessCSV(file, request)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	// CSV履歴も保存する
-	csvHistoryRequest := model.CSVHistorySaveRequest{
-		FileName: file.Filename,
-		CardType: cardType,
-		Year:     year,
-		Month:    month,
-		UserId:   userId,
-	}
-	
-	// 注入されたCSV履歴ユースケースを使用
-	_, err = csc.chu.SaveCSVHistory(file, csvHistoryRequest)
-	if err != nil {
-		// CSV履歴の保存に失敗しても、カード明細の処理は続行
-		// エラーログを出力するなどの対応が望ましい
-		log.Printf("Failed to save CSV history: %v", err)
-	}
-	
-	return c.JSON(http.StatusCreated, cardStatementsRes)
+	return csc.handler.UploadCSV(c)
 }
 
 // PreviewCSV CSVファイルをアップロードしてプレビュー（保存なし）
@@ -173,57 +87,7 @@ func (csc *cardStatementController) UploadCSV(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/preview [post]
 func (csc *cardStatementController) PreviewCSV(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	// ファイルの取得
-	file, err := c.FormFile("file")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "ファイルが見つかりません"})
-	}
-	
-	// カード種類の取得
-	cardType := c.FormValue("card_type")
-	if cardType == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "card_type is required"})
-	}
-	
-	// 年月の取得（プレビュー時は任意）
-	yearStr := c.FormValue("year")
-	monthStr := c.FormValue("month")
-	
-	// 年月の変換
-	var year, month int
-	if yearStr != "" {
-		year, err = strconv.Atoi(yearStr)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
-		}
-	}
-	
-	if monthStr != "" {
-		month, err = strconv.Atoi(monthStr)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
-		}
-	}
-	
-	request := model.CardStatementPreviewRequest{
-		CardType: cardType,
-		UserId:   userId,
-		Year:     year,
-		Month:    month,
-	}
-	
-	// CSVのプレビュー処理
-	cardStatementsRes, err := csc.csu.PreviewCSV(file, request)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.JSON(http.StatusOK, cardStatementsRes)
+	return csc.handler.PreviewCSV(c)
 }
 
 // SaveCardStatements プレビューしたカード明細をDBに保存
@@ -238,39 +102,9 @@ func (csc *cardStatementController) PreviewCSV(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/save [post]
 func (csc *cardStatementController) SaveCardStatements(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	var request model.CardStatementSaveRequest
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
-	}
-	
-	request.UserId = userId
-	
-	// リクエストの検証を強化
-	if request.Year <= 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Year must be positive"})
-	}
-	
-	if request.Month < 1 || request.Month > 12 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Month must be between 1 and 12"})
-	}
-	
-	if len(request.CardStatements) == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Card statements cannot be empty"})
-	}
-	
-	// カード明細の保存
-	cardStatementsRes, err := csc.csu.SaveCardStatements(request)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.JSON(http.StatusCreated, cardStatementsRes)
+	return csc.handler.SaveCardStatements(c)
 }
+
 // GetCardStatementsByMonth 支払月ごとのカード明細を取得
 // @Summary 支払月ごとのカード明細を取得
 // @Description 指定された年月の支払いに関するカード明細を取得する
@@ -284,35 +118,5 @@ func (csc *cardStatementController) SaveCardStatements(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/by-month [get]
 func (csc *cardStatementController) GetCardStatementsByMonth(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	// クエリパラメータの取得
-	yearStr := c.QueryParam("year")
-	monthStr := c.QueryParam("month")
-	
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
-	}
-	
-	month, err := strconv.Atoi(monthStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
-	}
-	
-	request := model.CardStatementByMonthRequest{
-		Year:   year,
-		Month:  month,
-		UserId: userId,
-	}
-	
-	cardStatementsRes, err := csc.csu.GetCardStatementsByMonth(request)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.JSON(http.StatusOK, cardStatementsRes)
+	return csc.handler.GetCardStatementsByMonth(c)
 }

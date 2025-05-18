@@ -4,11 +4,12 @@ import (
 	"monelog/model"
 )
 
-// DeleteCardStatements はユーザーIDに基づいてカードステートメントを削除します
+// DeleteCardStatement はカードステートメントを削除します
+func (csr *cardStatementRepository) DeleteCardStatement(cardStatement *model.CardStatement) error {
+	return csr.db.Delete(cardStatement).Error
+}
+
+// DeleteCardStatements はユーザーIDに基づいてすべてのカードステートメントを削除します
 func (csr *cardStatementRepository) DeleteCardStatements(userId uint) error {
-	result := csr.db.Where("user_id=?", userId).Delete(&model.CardStatement{})
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	return csr.db.Where("user_id = ?", userId).Delete(&model.CardStatement{}).Error
 }

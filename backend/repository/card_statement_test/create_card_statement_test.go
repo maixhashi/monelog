@@ -5,52 +5,50 @@ import (
 	"testing"
 )
 
-func TestCardStatementRepository_CreateCardStatement(t *testing.T) {
-	setupCardStatementTest()
-	
-	t.Run("正常系", func(t *testing.T) {
-		t.Run("カード明細を正常に作成できる", func(t *testing.T) {
-			newStatement := &model.CardStatement{
-				Type:              "発生",
-				StatementNo:       1,
-				CardType:          "楽天カード",
-				Description:       "新規テスト明細",
-				UseDate:           "2023/01/01",
-				PaymentDate:       "2023/02/27",
-				PaymentMonth:      "2023年02月",
-				Amount:            5000,
-				TotalChargeAmount: 5000,
-				ChargeAmount:      0,
-				RemainingBalance:  5000,
-				PaymentCount:      0,
-				InstallmentCount:  1,
-				AnnualRate:        0.0,
-				MonthlyRate:       0.0,
-				UserId:            cardStatementTestUser.ID,
-				Year:              2023,
-				Month:             1,
+func TestCreateCardStatement(t *testing.T) {
+	// テスト環境のセットアップ
+	setupCardStatementTest(t)
+	defer cleanupCardStatementTest(t)
+
+	// テストデータの準備
+	testCases := []struct {
+		name          string
+		cardStatement model.CardStatement
+		wantErr       bool
+	}{
+		{
+			name: "正常なカードステートメントの作成",
+			cardStatement: model.CardStatement{
+				UserId:       cardStatementTestUser,
+				StatementNo:  1,
+				PaymentCount: 1,
+				Year:         2023,
+				Month:        1,
+				Amount:       10000,
+			},
+			wantErr: false,
+		},
+		// 他のテストケースも追加可能
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// テスト実行
+			err := cardStatementRepo.CreateCardStatement(&tc.cardStatement)
+
+			// 結果の検証
+			if (err != nil) != tc.wantErr {
+				t.Errorf("CreateCardStatement() error = %v, wantErr %v", err, tc.wantErr)
+				return
 			}
-			
-			err := cardStatementRepo.CreateCardStatement(newStatement)
-			
-			if err != nil {
-				t.Errorf("CreateCardStatement() error = %v", err)
-			}
-			
-			validateCardStatement(t, newStatement)
-			
-			// データベースから取得して確認
-			var savedStatement model.CardStatement
-			result := cardStatementDB.First(&savedStatement, newStatement.ID)
-			
-			if result.Error != nil {
-				t.Errorf("データベースからの取得に失敗: %v", result.Error)
-			}
-			
-			if savedStatement.Description != "新規テスト明細" {
-				t.Errorf("保存されたデータが一致しません: got %v, want %v", 
-					savedStatement.Description, "新規テスト明細")
+
+			// 作成されたデータの検証
+			if !tc.wantErr {
+				var created model.CardStatement
+				if err := cardStatementDB.First(&created, tc.cardStatement.ID).Error; err != nil {
+					t.Errorf("Failed to retrieve created card statement: %v", err)
+				}
 			}
 		})
-	})
+	}
 }

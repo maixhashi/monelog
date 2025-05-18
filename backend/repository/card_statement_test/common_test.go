@@ -2,9 +2,47 @@ package card_statement_test
 
 import (
 	"monelog/model"
+	"monelog/repository"
 	"testing"
 	"time"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
+
+// テスト用の共通変数
+var (
+	cardStatementDB        *gorm.DB
+	cardStatementRepo      repository.ICardStatementRepository
+	cardStatementTestUser  uint = 1
+	cardStatementOtherUser uint = 2
+)
+
+// setupCardStatementTest はテスト用のデータベースとリポジトリをセットアップします
+func setupCardStatementTest(t *testing.T) {
+	var err error
+	cardStatementDB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("failed to connect database: %v", err)
+	}
+
+	// マイグレーション
+	err = cardStatementDB.AutoMigrate(&model.CardStatement{})
+	if err != nil {
+		t.Fatalf("failed to migrate database: %v", err)
+	}
+
+	cardStatementRepo = repository.NewCardStatementRepository(cardStatementDB)
+}
+
+// cleanupCardStatementTest はテスト用のデータベースをクリーンアップします
+func cleanupCardStatementTest(t *testing.T) {
+	sqlDB, err := cardStatementDB.DB()
+	if err != nil {
+		t.Fatalf("failed to get database: %v", err)
+	}
+	sqlDB.Close()
+}
 
 // テスト用のカード明細を作成する関数
 func createTestCardStatement(cardType string, description string, userId uint, year int, month int) *model.CardStatement {

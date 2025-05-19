@@ -1,11 +1,8 @@
 package controller
 
 import (
-	"fmt"
-	"monelog/model"
+	"monelog/controller/csv_history"
 	"monelog/usecase"
-	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,18 +10,20 @@ import (
 type ICSVHistoryController interface {
 	GetAllCSVHistories(c echo.Context) error
 	GetCSVHistoryById(c echo.Context) error
-	GetCSVHistoriesByMonth(c echo.Context) error // 追加: 月別取得
+	GetCSVHistoriesByMonth(c echo.Context) error
 	SaveCSVHistory(c echo.Context) error
 	DeleteCSVHistory(c echo.Context) error
 	DownloadCSVHistory(c echo.Context) error
 }
 
 type csvHistoryController struct {
-	chu usecase.ICSVHistoryUsecase
+	handler *csv_history.Handler
 }
 
 func NewCSVHistoryController(chu usecase.ICSVHistoryUsecase) ICSVHistoryController {
-	return &csvHistoryController{chu}
+	return &csvHistoryController{
+		handler: csv_history.NewHandler(chu),
+	}
 }
 
 // GetAllCSVHistories ユーザーのすべてのCSV履歴を取得
@@ -37,16 +36,7 @@ func NewCSVHistoryController(chu usecase.ICSVHistoryUsecase) ICSVHistoryControll
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories [get]
 func (chc *csvHistoryController) GetAllCSVHistories(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	csvHistoriesRes, err := chc.chu.GetAllCSVHistories(userId)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return c.JSON(http.StatusOK, csvHistoriesRes)
+	return chc.handler.GetAllCSVHistories(c)
 }
 
 // GetCSVHistoryById 指定されたIDのCSV履歴を取得
@@ -61,22 +51,7 @@ func (chc *csvHistoryController) GetAllCSVHistories(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories/{csvHistoryId} [get]
 func (chc *csvHistoryController) GetCSVHistoryById(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	id := c.Param("csvHistoryId")
-	csvHistoryId, err := strconv.ParseUint(id, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid CSV history ID"})
-	}
-	
-	csvHistoryRes, err := chc.chu.GetCSVHistoryById(userId, uint(csvHistoryId))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return c.JSON(http.StatusOK, csvHistoryRes)
+	return chc.handler.GetCSVHistoryById(c)
 }
 
 // GetCSVHistoriesByMonth 月別のCSV履歴を取得
@@ -92,31 +67,7 @@ func (chc *csvHistoryController) GetCSVHistoryById(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories/by-month [get]
 func (chc *csvHistoryController) GetCSVHistoriesByMonth(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	// クエリパラメータの取得
-	yearStr := c.QueryParam("year")
-	monthStr := c.QueryParam("month")
-	
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
-	}
-	
-	month, err := strconv.Atoi(monthStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
-	}
-	
-	csvHistoriesRes, err := chc.chu.GetCSVHistoriesByMonth(userId, year, month)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.JSON(http.StatusOK, csvHistoriesRes)
+	return chc.handler.GetCSVHistoriesByMonth(c)
 }
 
 // SaveCSVHistory CSVファイルを履歴として保存
@@ -135,59 +86,7 @@ func (chc *csvHistoryController) GetCSVHistoriesByMonth(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories [post]
 func (chc *csvHistoryController) SaveCSVHistory(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	// ファイルの取得
-	file, err := c.FormFile("file")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "ファイルが見つかりません"})
-	}
-	
-	// ファイル名の取得
-	fileName := c.FormValue("file_name")
-	if fileName == "" {
-		// ファイル名が指定されていない場合は、アップロードされたファイル名を使用
-		fileName = file.Filename
-	}
-	
-	// カード種類の取得
-	cardType := c.FormValue("card_type")
-	if cardType == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "card_type is required"})
-	}
-	
-	// 年月の取得
-	yearStr := c.FormValue("year")
-	monthStr := c.FormValue("month")
-	
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
-	}
-	
-	month, err := strconv.Atoi(monthStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
-	}
-	
-	request := model.CSVHistorySaveRequest{
-		FileName: fileName,
-		CardType: cardType,
-		Year:     year,
-		Month:    month,
-		UserId:   userId,
-	}
-	
-	// CSV履歴の保存
-	csvHistoryRes, err := chc.chu.SaveCSVHistory(file, request)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.JSON(http.StatusCreated, csvHistoryRes)
+	return chc.handler.SaveCSVHistory(c)
 }
 
 // DeleteCSVHistory 指定されたIDのCSV履歴を削除
@@ -202,22 +101,7 @@ func (chc *csvHistoryController) SaveCSVHistory(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories/{csvHistoryId} [delete]
 func (chc *csvHistoryController) DeleteCSVHistory(c echo.Context) error {
-	userId, err := getUserIdFromToken(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-	}
-	
-	id := c.Param("csvHistoryId")
-	csvHistoryId, err := strconv.ParseUint(id, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid CSV history ID"})
-	}
-	
-	if err := chc.chu.DeleteCSVHistory(userId, uint(csvHistoryId)); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	
-	return c.NoContent(http.StatusNoContent)
+	return chc.handler.DeleteCSVHistory(c)
 }
 
 // DownloadCSVHistory 指定されたIDのCSV履歴からCSVファイルをダウンロード
@@ -232,27 +116,5 @@ func (chc *csvHistoryController) DeleteCSVHistory(c echo.Context) error {
 // @Failure 500 {object} map[string]string
 // @Router /csv-histories/{csvHistoryId}/download [get]
 func (chc *csvHistoryController) DownloadCSVHistory(c echo.Context) error {
-    userId, err := getUserIdFromToken(c)
-    if err != nil {
-        return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
-    }
-    
-    id := c.Param("csvHistoryId")
-    csvHistoryId, err := strconv.ParseUint(id, 10, 32)
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid CSV history ID"})
-    }
-    
-    // CSV履歴の詳細を取得
-    csvHistoryDetail, err := chc.chu.GetCSVHistoryById(userId, uint(csvHistoryId))
-    if err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-    }
-    
-    // Content-Dispositionヘッダーを設定してファイルとしてダウンロードさせる
-    c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", csvHistoryDetail.FileName))
-    c.Response().Header().Set("Content-Type", "text/csv")
-    
-    // ファイルデータを返す
-    return c.Blob(http.StatusOK, "text/csv", csvHistoryDetail.FileData)
+	return chc.handler.DownloadCSVHistory(c)
 }

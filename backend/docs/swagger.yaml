@@ -1,5 +1,91 @@
 basePath: /
 definitions:
+  dto.CardStatementResponse:
+    properties:
+      amount:
+        example: 10000
+        type: integer
+      annual_rate:
+        example: 0
+        type: number
+      card_type:
+        example: 楽天カード
+        type: string
+      charge_amount:
+        example: 0
+        type: integer
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      description:
+        example: Amazon.co.jp
+        type: string
+      id:
+        example: 1
+        type: integer
+      installment_count:
+        example: 1
+        type: integer
+      month:
+        example: 4
+        type: integer
+      monthly_rate:
+        example: 0
+        type: number
+      payment_count:
+        example: 0
+        type: integer
+      payment_date:
+        example: 2023/02/27
+        type: string
+      payment_month:
+        example: 2023年02月
+        type: string
+      remaining_balance:
+        example: 10000
+        type: integer
+      statement_no:
+        example: 1
+        type: integer
+      total_charge_amount:
+        example: 10000
+        type: integer
+      type:
+        example: 発生
+        type: string
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      use_date:
+        example: 2023/01/01
+        type: string
+      year:
+        example: 2023
+        type: integer
+    type: object
+  dto.CardStatementSaveRequest:
+    properties:
+      card_statements:
+        items:
+          $ref: '#/definitions/summary.Summary'
+        type: array
+      card_type:
+        example: rakuten
+        type: string
+      month:
+        example: 4
+        maximum: 12
+        minimum: 1
+        type: integer
+      year:
+        example: 2023
+        type: integer
+    required:
+    - card_statements
+    - card_type
+    - month
+    - year
+    type: object
   model.AuthVerifyResponse:
     properties:
       authenticated:
@@ -63,125 +149,6 @@ definitions:
         description: '追加: 年'
         example: 2023
         type: integer
-    type: object
-  model.CardStatementResponse:
-    properties:
-      amount:
-        example: 10000
-        type: integer
-      annual_rate:
-        example: 0
-        type: number
-      card_type:
-        example: 楽天カード
-        type: string
-      charge_amount:
-        example: 0
-        type: integer
-      created_at:
-        example: "2023-01-01T00:00:00Z"
-        type: string
-      description:
-        example: Amazon.co.jp
-        type: string
-      id:
-        example: 1
-        type: integer
-      installment_count:
-        example: 1
-        type: integer
-      month:
-        example: 4
-        type: integer
-      monthly_rate:
-        example: 0
-        type: number
-      payment_count:
-        example: 0
-        type: integer
-      payment_date:
-        example: 2023/02/27
-        type: string
-      payment_month:
-        example: 2023年02月
-        type: string
-      remaining_balance:
-        example: 10000
-        type: integer
-      statement_no:
-        example: 1
-        type: integer
-      total_charge_amount:
-        example: 10000
-        type: integer
-      type:
-        example: 発生
-        type: string
-      updated_at:
-        example: "2023-01-01T00:00:00Z"
-        type: string
-      use_date:
-        example: 2023/01/01
-        type: string
-      year:
-        example: 2023
-        type: integer
-    type: object
-  model.CardStatementSaveRequest:
-    properties:
-      card_statements:
-        items:
-          $ref: '#/definitions/model.CardStatementSummary'
-        type: array
-      card_type:
-        example: rakuten
-        type: string
-      month:
-        example: 4
-        maximum: 12
-        minimum: 1
-        type: integer
-      year:
-        example: 2023
-        type: integer
-    required:
-    - card_statements
-    - card_type
-    - month
-    - year
-    type: object
-  model.CardStatementSummary:
-    properties:
-      amount:
-        type: integer
-      annual_rate:
-        type: number
-      card_type:
-        type: string
-      charge_amount:
-        type: integer
-      description:
-        type: string
-      installment_count:
-        type: integer
-      monthly_rate:
-        type: number
-      payment_count:
-        type: integer
-      payment_date:
-        type: string
-      payment_month:
-        type: string
-      remaining_balance:
-        type: integer
-      statement_no:
-        type: integer
-      total_charge_amount:
-        type: integer
-      type:
-        type: string
-      use_date:
-        type: string
     type: object
   model.CsrfTokenResponse:
     properties:
@@ -255,6 +222,39 @@ definitions:
     - email
     - password
     type: object
+  summary.Summary:
+    properties:
+      amount:
+        type: integer
+      annual_rate:
+        type: number
+      card_type:
+        type: string
+      charge_amount:
+        type: integer
+      description:
+        type: string
+      installment_count:
+        type: integer
+      monthly_rate:
+        type: number
+      payment_count:
+        type: integer
+      payment_date:
+        type: string
+      payment_month:
+        type: string
+      remaining_balance:
+        type: integer
+      statement_no:
+        type: integer
+      total_charge_amount:
+        type: integer
+      type:
+        type: string
+      use_date:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -297,7 +297,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.CardStatementResponse'
+              $ref: '#/definitions/dto.CardStatementResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -325,7 +325,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.CardStatementResponse'
+            $ref: '#/definitions/dto.CardStatementResponse'
         "400":
           description: Bad Request
           schema:
@@ -364,7 +364,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.CardStatementResponse'
+              $ref: '#/definitions/dto.CardStatementResponse'
             type: array
         "400":
           description: Bad Request
@@ -412,7 +412,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.CardStatementResponse'
+              $ref: '#/definitions/dto.CardStatementResponse'
             type: array
         "400":
           description: Bad Request
@@ -440,7 +440,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.CardStatementSaveRequest'
+          $ref: '#/definitions/dto.CardStatementSaveRequest'
       produces:
       - application/json
       responses:
@@ -448,7 +448,7 @@ paths:
           description: Created
           schema:
             items:
-              $ref: '#/definitions/model.CardStatementResponse'
+              $ref: '#/definitions/dto.CardStatementResponse'
             type: array
         "400":
           description: Bad Request
@@ -498,7 +498,7 @@ paths:
           description: Created
           schema:
             items:
-              $ref: '#/definitions/model.CardStatementResponse'
+              $ref: '#/definitions/dto.CardStatementResponse'
             type: array
         "400":
           description: Bad Request

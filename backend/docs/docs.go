@@ -71,7 +71,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.CardStatementResponse"
+                                "$ref": "#/definitions/dto.CardStatementResponse"
                             }
                         }
                     },
@@ -122,7 +122,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.CardStatementResponse"
+                                "$ref": "#/definitions/dto.CardStatementResponse"
                             }
                         }
                     },
@@ -194,7 +194,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.CardStatementResponse"
+                                "$ref": "#/definitions/dto.CardStatementResponse"
                             }
                         }
                     },
@@ -239,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.CardStatementSaveRequest"
+                            "$ref": "#/definitions/dto.CardStatementSaveRequest"
                         }
                     }
                 ],
@@ -249,7 +249,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.CardStatementResponse"
+                                "$ref": "#/definitions/dto.CardStatementResponse"
                             }
                         }
                     },
@@ -323,7 +323,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.CardStatementResponse"
+                                "$ref": "#/definitions/dto.CardStatementResponse"
                             }
                         }
                     },
@@ -374,7 +374,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.CardStatementResponse"
+                            "$ref": "#/definitions/dto.CardStatementResponse"
                         }
                     },
                     "400": {
@@ -1147,6 +1147,122 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CardStatementResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "annual_rate": {
+                    "type": "number",
+                    "example": 0
+                },
+                "card_type": {
+                    "type": "string",
+                    "example": "楽天カード"
+                },
+                "charge_amount": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Amazon.co.jp"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "installment_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "month": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "monthly_rate": {
+                    "type": "number",
+                    "example": 0
+                },
+                "payment_count": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "payment_date": {
+                    "type": "string",
+                    "example": "2023/02/27"
+                },
+                "payment_month": {
+                    "type": "string",
+                    "example": "2023年02月"
+                },
+                "remaining_balance": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "statement_no": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total_charge_amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "type": {
+                    "type": "string",
+                    "example": "発生"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "use_date": {
+                    "type": "string",
+                    "example": "2023/01/01"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2023
+                }
+            }
+        },
+        "dto.CardStatementSaveRequest": {
+            "type": "object",
+            "required": [
+                "card_statements",
+                "card_type",
+                "month",
+                "year"
+            ],
+            "properties": {
+                "card_statements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/summary.Summary"
+                    }
+                },
+                "card_type": {
+                    "type": "string",
+                    "example": "rakuten"
+                },
+                "month": {
+                    "type": "integer",
+                    "maximum": 12,
+                    "minimum": 1,
+                    "example": 4
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2023
+                }
+            }
+        },
         "model.AuthVerifyResponse": {
             "type": "object",
             "properties": {
@@ -1232,172 +1348,6 @@ const docTemplate = `{
                     "description": "追加: 年",
                     "type": "integer",
                     "example": 2023
-                }
-            }
-        },
-        "model.CardStatementResponse": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "annual_rate": {
-                    "type": "number",
-                    "example": 0
-                },
-                "card_type": {
-                    "type": "string",
-                    "example": "楽天カード"
-                },
-                "charge_amount": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "created_at": {
-                    "type": "string",
-                    "example": "2023-01-01T00:00:00Z"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Amazon.co.jp"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "installment_count": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "month": {
-                    "type": "integer",
-                    "example": 4
-                },
-                "monthly_rate": {
-                    "type": "number",
-                    "example": 0
-                },
-                "payment_count": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "payment_date": {
-                    "type": "string",
-                    "example": "2023/02/27"
-                },
-                "payment_month": {
-                    "type": "string",
-                    "example": "2023年02月"
-                },
-                "remaining_balance": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "statement_no": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "total_charge_amount": {
-                    "type": "integer",
-                    "example": 10000
-                },
-                "type": {
-                    "type": "string",
-                    "example": "発生"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2023-01-01T00:00:00Z"
-                },
-                "use_date": {
-                    "type": "string",
-                    "example": "2023/01/01"
-                },
-                "year": {
-                    "type": "integer",
-                    "example": 2023
-                }
-            }
-        },
-        "model.CardStatementSaveRequest": {
-            "type": "object",
-            "required": [
-                "card_statements",
-                "card_type",
-                "month",
-                "year"
-            ],
-            "properties": {
-                "card_statements": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CardStatementSummary"
-                    }
-                },
-                "card_type": {
-                    "type": "string",
-                    "example": "rakuten"
-                },
-                "month": {
-                    "type": "integer",
-                    "maximum": 12,
-                    "minimum": 1,
-                    "example": 4
-                },
-                "year": {
-                    "type": "integer",
-                    "example": 2023
-                }
-            }
-        },
-        "model.CardStatementSummary": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                },
-                "annual_rate": {
-                    "type": "number"
-                },
-                "card_type": {
-                    "type": "string"
-                },
-                "charge_amount": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "installment_count": {
-                    "type": "integer"
-                },
-                "monthly_rate": {
-                    "type": "number"
-                },
-                "payment_count": {
-                    "type": "integer"
-                },
-                "payment_date": {
-                    "type": "string"
-                },
-                "payment_month": {
-                    "type": "string"
-                },
-                "remaining_balance": {
-                    "type": "integer"
-                },
-                "statement_no": {
-                    "type": "integer"
-                },
-                "total_charge_amount": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "use_date": {
-                    "type": "string"
                 }
             }
         },
@@ -1501,6 +1451,56 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password123"
+                }
+            }
+        },
+        "summary.Summary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "annual_rate": {
+                    "type": "number"
+                },
+                "card_type": {
+                    "type": "string"
+                },
+                "charge_amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "installment_count": {
+                    "type": "integer"
+                },
+                "monthly_rate": {
+                    "type": "number"
+                },
+                "payment_count": {
+                    "type": "integer"
+                },
+                "payment_date": {
+                    "type": "string"
+                },
+                "payment_month": {
+                    "type": "string"
+                },
+                "remaining_balance": {
+                    "type": "integer"
+                },
+                "statement_no": {
+                    "type": "integer"
+                },
+                "total_charge_amount": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "use_date": {
+                    "type": "string"
                 }
             }
         }

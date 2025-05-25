@@ -2,6 +2,7 @@ package card_statement
 
 import (
 	"log"
+	"monelog/dto"
 	"monelog/model"
 	"net/http"
 	"strconv"
@@ -41,7 +42,7 @@ func (h *Handler) UploadCSV(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
 	}
 	
-	request := model.CardStatementRequest{
+	request := dto.CardStatementRequest{
 		CardType: cardType,
 		UserId:   userId,
 		Year:     year,
@@ -55,6 +56,7 @@ func (h *Handler) UploadCSV(c echo.Context) error {
 	}
 	
 	// CSV履歴も保存する
+	// DTOからモデルに変換
 	csvHistoryRequest := model.CSVHistorySaveRequest{
 		FileName: file.Filename,
 		CardType: cardType,

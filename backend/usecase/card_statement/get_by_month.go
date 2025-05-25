@@ -1,10 +1,11 @@
 package card_statement
 
 import (
-	"monelog/model"
+	"monelog/dto"
+	"monelog/mapper"
 )
 
-func (csu *cardStatementUsecase) GetCardStatementsByMonth(request model.CardStatementByMonthRequest) ([]model.CardStatementResponse, error) {
+func (csu *cardStatementUsecase) GetCardStatementsByMonth(request dto.CardStatementByMonthRequest) ([]dto.CardStatementResponse, error) {
 	// Validate the request
 	if err := csu.csv.ValidateCardStatementByMonthRequest(request); err != nil {
 		return nil, err
@@ -16,11 +17,6 @@ func (csu *cardStatementUsecase) GetCardStatementsByMonth(request model.CardStat
 		return nil, err
 	}
 	
-	// Convert to response format
-	responses := make([]model.CardStatementResponse, len(cardStatements))
-	for i, cardStatement := range cardStatements {
-		responses[i] = cardStatement.ToResponse()
-	}
-	
-	return responses, nil
+	// Convert to response format using the mapper
+	return mapper.ToCardStatementResponseList(cardStatements), nil
 }

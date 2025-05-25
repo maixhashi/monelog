@@ -1,13 +1,14 @@
 package card_statement
 
 import (
-	"monelog/model"
+	"monelog/dto"
+	"monelog/mapper"
 )
 
-func (csu *cardStatementUsecase) GetCardStatementById(userId uint, cardStatementId uint) (model.CardStatementResponse, error) {
+func (csu *cardStatementUsecase) GetCardStatementById(userId uint, cardStatementId uint) (dto.CardStatementResponse, error) {
 	cardStatement, err := csu.csr.GetCardStatementById(userId, cardStatementId)
 	if err != nil {
-		return model.CardStatementResponse{}, err
+		return dto.CardStatementResponse{}, err
 	}
-	return cardStatement.ToResponse(), nil
+	return mapper.ToCardStatementResponse(&cardStatement), nil
 }

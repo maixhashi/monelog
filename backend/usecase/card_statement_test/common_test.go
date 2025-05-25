@@ -1,6 +1,7 @@
 package card_statement_test
 
 import (
+	"monelog/dto"
 	"monelog/model"
 	"testing"
 )
@@ -42,7 +43,7 @@ func assertCardStatementNotExists(t *testing.T, cardStatementId uint) bool {
 }
 
 // カード明細レスポンスの検証ヘルパー関数
-func validateCardStatementResponse(t *testing.T, cardStatement model.CardStatementResponse, expectedId uint, expectedDescription string) bool {
+func validateCardStatementResponse(t *testing.T, cardStatement dto.CardStatementResponse, expectedId uint, expectedDescription string) bool {
 	if cardStatement.ID != expectedId {
 		t.Errorf("カード明細IDが一致しません: got=%d, want=%d", cardStatement.ID, expectedId)
 		return false
@@ -62,7 +63,7 @@ func validateCardStatementResponse(t *testing.T, cardStatement model.CardStateme
 }
 
 // カード明細レスポンスの配列を検証するヘルパー関数
-func validateCardStatementResponses(t *testing.T, responses []model.CardStatementResponse, expectedCount int) bool {
+func validateCardStatementResponses(t *testing.T, responses []dto.CardStatementResponse, expectedCount int) bool {
 	if len(responses) != expectedCount {
 		t.Errorf("カード明細の数が一致しません: got=%d, want=%d", len(responses), expectedCount)
 		return false

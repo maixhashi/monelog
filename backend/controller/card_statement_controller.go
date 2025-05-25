@@ -32,7 +32,7 @@ func NewCardStatementController(csu usecase.ICardStatementUsecase, chu usecase.I
 // @Tags card-statements
 // @Accept json
 // @Produce json
-// @Success 200 {array} model.CardStatementResponse
+// @Success 200 {array} dto.CardStatementResponse
 // @Failure 500 {object} map[string]string
 // @Router /card-statements [get]
 func (csc *cardStatementController) GetAllCardStatements(c echo.Context) error {
@@ -46,7 +46,7 @@ func (csc *cardStatementController) GetAllCardStatements(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param cardStatementId path int true "カード明細ID"
-// @Success 200 {object} model.CardStatementResponse
+// @Success 200 {object} dto.CardStatementResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/{cardStatementId} [get]
@@ -64,7 +64,7 @@ func (csc *cardStatementController) GetCardStatementById(c echo.Context) error {
 // @Param card_type formData string true "カード種類 (rakuten, mufg, epos)"
 // @Param year formData int true "年 (例: 2023)"
 // @Param month formData int true "月 (1-12)"
-// @Success 201 {array} model.CardStatementResponse
+// @Success 201 {array} dto.CardStatementResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/upload [post]
@@ -82,7 +82,7 @@ func (csc *cardStatementController) UploadCSV(c echo.Context) error {
 // @Param card_type formData string true "カード種類 (rakuten, mufg, epos)"
 // @Param year formData int false "年 (例: 2023)"
 // @Param month formData int false "月 (1-12)"
-// @Success 200 {array} model.CardStatementResponse
+// @Success 200 {array} dto.CardStatementResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/preview [post]
@@ -96,8 +96,8 @@ func (csc *cardStatementController) PreviewCSV(c echo.Context) error {
 // @Tags card-statements
 // @Accept json
 // @Produce json
-// @Param request body model.CardStatementSaveRequest true "保存するカード明細データ"
-// @Success 201 {array} model.CardStatementResponse
+// @Param request body dto.CardStatementSaveRequest true "保存するカード明細データ"
+// @Success 201 {array} dto.CardStatementResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/save [post]
@@ -113,7 +113,7 @@ func (csc *cardStatementController) SaveCardStatements(c echo.Context) error {
 // @Produce json
 // @Param year query int true "年 (例: 2023)"
 // @Param month query int true "月 (1-12)"
-// @Success 200 {array} model.CardStatementResponse
+// @Success 200 {array} dto.CardStatementResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /card-statements/by-month [get]

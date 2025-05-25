@@ -96,11 +96,7 @@ func TestCardStatementUsecase_GetAllCardStatements(t *testing.T) {
 			}
 			
 			// レスポンス形式の検証
-			for _, cardStatement := range cardStatementResponses {
-				if cardStatement.ID == 0 || cardStatement.Description == "" || cardStatement.CreatedAt.IsZero() || cardStatement.UpdatedAt.IsZero() {
-					t.Errorf("GetAllCardStatements() returned invalid card statement: %+v", cardStatement)
-				}
-			}
+			validateCardStatementResponses(t, cardStatementResponses, 2)
 		})
 	})
 }

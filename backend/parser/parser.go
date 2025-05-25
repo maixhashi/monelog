@@ -1,13 +1,13 @@
 package parser
 
 import (
-	"monelog/model"
 	"fmt"
+	"monelog/dto"
 )
 
 // ICardStatementParser カード明細CSVパーサーのインターフェース
 type ICardStatementParser interface {
-	Parse(csvData []byte) ([]model.CardStatementSummary, error)
+	Parse(csvData []byte) ([]dto.CardStatementSummary, error)
 }
 
 // GetParser カード種類に応じたパーサーを返す

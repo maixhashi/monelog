@@ -1,10 +1,12 @@
 package card_statement
 
 import (
+	"monelog/dto"
+	"monelog/mapper"
 	"monelog/model"
 )
 
-func (csu *cardStatementUsecase) SaveCardStatements(request model.CardStatementSaveRequest) ([]model.CardStatementResponse, error) {
+func (csu *cardStatementUsecase) SaveCardStatements(request dto.CardStatementSaveRequest) ([]dto.CardStatementResponse, error) {
 	if err := csu.csv.ValidateCardStatementSaveRequest(request); err != nil {
 		return nil, err
 	}
@@ -18,7 +20,7 @@ func (csu *cardStatementUsecase) SaveCardStatements(request model.CardStatementS
 	cardStatements := make([]model.CardStatement, len(request.CardStatements))
 	for i, summary := range request.CardStatements {
 		// 年月を引数として渡す
-		cardStatements[i] = summary.ToModel(request.UserId, request.Year, request.Month)
+		cardStatements[i] = mapper.ToCardStatementModel(&summary, request.UserId, request.Year, request.Month)
 	}
 
 	if err := csu.csr.CreateCardStatements(cardStatements); err != nil {
@@ -26,10 +28,5 @@ func (csu *cardStatementUsecase) SaveCardStatements(request model.CardStatementS
 	}
 
 	// レスポンスを作成
-	responses := make([]model.CardStatementResponse, len(cardStatements))
-	for i, cardStatement := range cardStatements {
-		responses[i] = cardStatement.ToResponse()
-	}
-
-	return responses, nil
+	return mapper.ToCardStatementResponseList(cardStatements), nil
 }

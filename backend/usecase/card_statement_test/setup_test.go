@@ -1,6 +1,7 @@
 package card_statement_test
 
 import (
+	"monelog/dto"
 	"monelog/model"
 	"monelog/repository"
 	"monelog/testutils"
@@ -13,12 +14,12 @@ import (
 
 // テスト用の共通変数
 var (
-	db                 *gorm.DB
-	cardStatementRepo  repository.ICardStatementRepository
+	db                     *gorm.DB
+	cardStatementRepo      repository.ICardStatementRepository
 	cardStatementValidator validator.ICardStatementValidator
 	cardStatementUsecase   usecase.ICardStatementUsecase
-	testUser           model.User
-	otherUser          model.User
+	testUser               model.User
+	otherUser              model.User
 )
 
 const nonExistentCardStatementID uint = 9999
@@ -75,8 +76,8 @@ func createTestCardStatement(t *testing.T, description string, userId uint, year
 }
 
 // テスト用のカード明細サマリーを作成
-func createTestCardStatementSummary(description string) model.CardStatementSummary {
-	return model.CardStatementSummary{
+func createTestCardStatementSummary(description string) dto.CardStatementSummary {
+	return dto.CardStatementSummary{
 		Type:              "発生",
 		StatementNo:       1,
 		CardType:          "楽天カード",

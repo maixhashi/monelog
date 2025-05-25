@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
+	"monelog/dto"
+	"monelog/mapper"
 	"monelog/model"
 	"monelog/parser"
 )
 
-func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request model.CardStatementRequest) ([]model.CardStatementResponse, error) {
+func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request dto.CardStatementRequest) ([]dto.CardStatementResponse, error) {
 	if err := csu.csv.ValidateCardStatementRequest(request); err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request 
 	// 解析結果をデータベースに保存
 	cardStatements := make([]model.CardStatement, len(summaries))
 	for i, summary := range summaries {
-		cardStatements[i] = summary.ToModel(request.UserId, request.Year, request.Month)
+		cardStatements[i] = mapper.ToCardStatementModel(&summary, request.UserId, request.Year, request.Month)
 	}
 
 	if err := csu.csr.CreateCardStatements(cardStatements); err != nil {
@@ -54,10 +56,5 @@ func (csu *cardStatementUsecase) ProcessCSV(file *multipart.FileHeader, request 
 	}
 
 	// レスポンスを作成
-	responses := make([]model.CardStatementResponse, len(cardStatements))
-	for i, cardStatement := range cardStatements {
-		responses[i] = cardStatement.ToResponse()
-	}
-
-	return responses, nil
+	return mapper.ToCardStatementResponseList(cardStatements), nil
 }

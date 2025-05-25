@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"monelog/dto"  // dtoパッケージをインポート
 	"monelog/model"
 	"net/http"
 	"net/http/httptest"
@@ -173,8 +174,8 @@ func createTestCardStatement(cardType, description string, userId uint, year, mo
 }
 
 // レスポンスボディをパースするヘルパー関数
-func parseCardStatementResponse(t *testing.T, responseBody []byte) model.CardStatementResponse {
-	var response model.CardStatementResponse
+func parseCardStatementResponse(t *testing.T, responseBody []byte) dto.CardStatementResponse {
+	var response dto.CardStatementResponse
 	err := json.Unmarshal(responseBody, &response)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal response: %v", err)
@@ -183,8 +184,8 @@ func parseCardStatementResponse(t *testing.T, responseBody []byte) model.CardSta
 }
 
 // 複数カード明細のレスポンスボディをパースするヘルパー関数
-func parseCardStatementsResponse(t *testing.T, responseBody []byte) []model.CardStatementResponse {
-	var response []model.CardStatementResponse
+func parseCardStatementsResponse(t *testing.T, responseBody []byte) []dto.CardStatementResponse {
+	var response []dto.CardStatementResponse
 	err := json.Unmarshal(responseBody, &response)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal response: %v", err)

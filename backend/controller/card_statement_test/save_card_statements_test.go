@@ -2,7 +2,7 @@ package card_statement_test
 
 import (
 	"encoding/json"
-	"monelog/model"
+	"monelog/dto"  // dtoパッケージをインポート
 	"net/http"
 	"testing"
 )
@@ -13,7 +13,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		t.Run("カード明細を保存する", func(t *testing.T) {
 			// テスト用リクエストデータの作成
-			cardStatements := []model.CardStatementSummary{
+			cardStatements := []dto.CardStatementSummary{  // model → dto
 				{
 					Type:              "発生",
 					StatementNo:       1,
@@ -50,7 +50,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 				},
 			}
 			
-			saveRequest := model.CardStatementSaveRequest{
+			saveRequest := dto.CardStatementSaveRequest{  // model → dto
 				CardStatements: cardStatements,
 				CardType:       "rakuten",
 				Year:           2023,
@@ -103,8 +103,8 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 	t.Run("異常系", func(t *testing.T) {
 		t.Run("空のカード明細リストでエラーになる", func(t *testing.T) {
 			// 空のカード明細リストを持つリクエスト
-			saveRequest := model.CardStatementSaveRequest{
-				CardStatements: []model.CardStatementSummary{},
+			saveRequest := dto.CardStatementSaveRequest{  // model → dto
+				CardStatements: []dto.CardStatementSummary{},  // model → dto
 				CardType:       "rakuten",
 				Year:           2023,
 				Month:          4,
@@ -134,7 +134,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 		
 		t.Run("無効な年でエラーになる", func(t *testing.T) {
 			// 無効な年を持つリクエスト
-			cardStatements := []model.CardStatementSummary{
+			cardStatements := []dto.CardStatementSummary{  // model → dto
 				{
 					Type:              "発生",
 					StatementNo:       1,
@@ -154,7 +154,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 				},
 			}
 			
-			saveRequest := model.CardStatementSaveRequest{
+			saveRequest := dto.CardStatementSaveRequest{  // model → dto
 				CardStatements: cardStatements,
 				CardType:       "rakuten",
 				Year:           0, // 無効な年
@@ -185,7 +185,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 		
 		t.Run("無効な月でエラーになる", func(t *testing.T) {
 			// 無効な月を持つリクエスト
-			cardStatements := []model.CardStatementSummary{
+			cardStatements := []dto.CardStatementSummary{  // model → dto
 				{
 					Type:              "発生",
 					StatementNo:       1,
@@ -205,7 +205,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 				},
 			}
 			
-			saveRequest := model.CardStatementSaveRequest{
+			saveRequest := dto.CardStatementSaveRequest{  // model → dto
 				CardStatements: cardStatements,
 				CardType:       "rakuten",
 				Year:           2023,
@@ -236,7 +236,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 		
 		t.Run("無効なカード種類でエラーになる", func(t *testing.T) {
 			// 無効なカード種類を持つリクエスト
-			cardStatements := []model.CardStatementSummary{
+			cardStatements := []dto.CardStatementSummary{  // model → dto
 				{
 					Type:              "発生",
 					StatementNo:       1,
@@ -256,7 +256,7 @@ func TestCardStatementController_SaveCardStatements(t *testing.T) {
 				},
 			}
 			
-			saveRequest := model.CardStatementSaveRequest{
+			saveRequest := dto.CardStatementSaveRequest{  // model → dto
 				CardStatements: cardStatements,
 				CardType:       "invalid_card_type", // 無効なカード種類
 				Year:           2023,

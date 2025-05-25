@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -21,8 +21,8 @@ func assertValidationResult(t *testing.T, err error, expectError bool, testName 
 }
 
 // テスト用のカード明細サマリーを作成するヘルパー関数
-func createValidCardStatementSummaries() []model.CardStatementSummary {
-	return []model.CardStatementSummary{
+func createValidCardStatementSummaries() []dto.CardStatementSummary {
+	return []dto.CardStatementSummary{
 		{
 			Type:              "発生",
 			StatementNo:       1,

@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestCardStatementValidateWithDifferentUsers(t *testing.T) {
 	
 	t.Run("異なるユーザーでのバリデーション", func(t *testing.T) {
 		// ユーザー1のリクエスト
-		request1 := model.CardStatementRequest{
+		request1 := dto.CardStatementRequest{
 			CardType: "rakuten",
 			Year:     2023,
 			Month:    4,
@@ -18,7 +18,7 @@ func TestCardStatementValidateWithDifferentUsers(t *testing.T) {
 		}
 		
 		// ユーザー2のリクエスト
-		request2 := model.CardStatementRequest{
+		request2 := dto.CardStatementRequest{
 			CardType: "mufg",
 			Year:     2023,
 			Month:    5,
@@ -37,7 +37,7 @@ func TestCardStatementValidateWithDifferentUsers(t *testing.T) {
 		validSummaries := createValidCardStatementSummaries()
 		
 		// ユーザー1の保存リクエスト
-		saveRequest1 := model.CardStatementSaveRequest{
+		saveRequest1 := dto.CardStatementSaveRequest{
 			CardType:       "rakuten",
 			Year:           2023,
 			Month:          4,
@@ -46,7 +46,7 @@ func TestCardStatementValidateWithDifferentUsers(t *testing.T) {
 		}
 		
 		// ユーザー2の保存リクエスト
-		saveRequest2 := model.CardStatementSaveRequest{
+		saveRequest2 := dto.CardStatementSaveRequest{
 			CardType:       "mufg",
 			Year:           2023,
 			Month:          5,
@@ -64,14 +64,14 @@ func TestCardStatementValidateWithDifferentUsers(t *testing.T) {
 	
 	t.Run("異なるユーザーでの月別リクエスト", func(t *testing.T) {
 		// ユーザー1の月別リクエスト
-		byMonthRequest1 := model.CardStatementByMonthRequest{
+		byMonthRequest1 := dto.CardStatementByMonthRequest{
 			Year:   2023,
 			Month:  4,
 			UserId: testUser.ID,
 		}
 		
 		// ユーザー2の月別リクエスト
-		byMonthRequest2 := model.CardStatementByMonthRequest{
+		byMonthRequest2 := dto.CardStatementByMonthRequest{
 			Year:   2023,
 			Month:  5,
 			UserId: otherUser.ID,

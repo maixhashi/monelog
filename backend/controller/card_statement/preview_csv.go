@@ -1,7 +1,7 @@
 package card_statement
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"net/http"
 	"strconv"
 
@@ -46,7 +46,7 @@ func (h *Handler) PreviewCSV(c echo.Context) error {
 		}
 	}
 	
-	request := model.CardStatementPreviewRequest{
+	request := dto.CardStatementPreviewRequest{
 		CardType: cardType,
 		UserId:   userId,
 		Year:     year,

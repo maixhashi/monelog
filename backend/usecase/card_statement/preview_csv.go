@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
+	"monelog/dto"
+	"monelog/mapper"
 	"monelog/model"
 	"monelog/parser"
 )
 
-func (csu *cardStatementUsecase) PreviewCSV(file *multipart.FileHeader, request model.CardStatementPreviewRequest) ([]model.CardStatementResponse, error) {
+func (csu *cardStatementUsecase) PreviewCSV(file *multipart.FileHeader, request dto.CardStatementPreviewRequest) ([]dto.CardStatementResponse, error) {
 	if err := csu.csv.ValidateCardStatementPreviewRequest(request); err != nil {
 		return nil, err
 	}
@@ -39,20 +41,10 @@ func (csu *cardStatementUsecase) PreviewCSV(file *multipart.FileHeader, request 
 	}
 
 	// レスポンスを作成（DBには保存しない）
-	responses := make([]model.CardStatementResponse, len(summaries))
+	cardStatements := make([]model.CardStatement, len(summaries))
 	for i, summary := range summaries {
-		cardStatement := summary.ToModel(request.UserId, request.Year, request.Month)
-		
-		// リクエストから年月を取得して設定
-		if request.Year > 0 {
-			cardStatement.Year = request.Year
-		}
-		if request.Month > 0 {
-			cardStatement.Month = request.Month
-		}
-		
-		responses[i] = cardStatement.ToResponse()
+		cardStatements[i] = mapper.ToCardStatementModel(&summary, request.UserId, request.Year, request.Month)
 	}
 
-	return responses, nil
+	return mapper.ToCardStatementResponseList(cardStatements), nil
 }

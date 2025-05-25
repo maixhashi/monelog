@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -17,7 +17,7 @@ func TestCardStatementUsecase_GetCardStatementsByMonth(t *testing.T) {
 	
 	t.Run("正常系", func(t *testing.T) {
 		t.Run("指定した年月の明細のみを取得する", func(t *testing.T) {
-			request := model.CardStatementByMonthRequest{
+			request := dto.CardStatementByMonthRequest{
 				Year:   2023,
 				Month:  1,
 				UserId: testUser.ID,
@@ -56,7 +56,7 @@ func TestCardStatementUsecase_GetCardStatementsByMonth(t *testing.T) {
 	
 	t.Run("異常系", func(t *testing.T) {
 		t.Run("バリデーションエラー - 無効な月", func(t *testing.T) {
-			request := model.CardStatementByMonthRequest{
+			request := dto.CardStatementByMonthRequest{
 				Year:   2023,
 				Month:  13, // 無効な月
 				UserId: testUser.ID,

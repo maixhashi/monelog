@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"mime/multipart"
-	"monelog/model"
+	"monelog/dto"
 	"monelog/repository"
 	"monelog/usecase/card_statement"
 	"monelog/validator"
@@ -10,12 +10,12 @@ import (
 
 // ICardStatementUsecase はカード明細に関するユースケースのインターフェースを定義します
 type ICardStatementUsecase interface {
-	GetAllCardStatements(userId uint) ([]model.CardStatementResponse, error)
-	GetCardStatementById(userId uint, cardStatementId uint) (model.CardStatementResponse, error)
-	ProcessCSV(file *multipart.FileHeader, request model.CardStatementRequest) ([]model.CardStatementResponse, error)
-	PreviewCSV(file *multipart.FileHeader, request model.CardStatementPreviewRequest) ([]model.CardStatementResponse, error)
-	SaveCardStatements(request model.CardStatementSaveRequest) ([]model.CardStatementResponse, error)
-	GetCardStatementsByMonth(request model.CardStatementByMonthRequest) ([]model.CardStatementResponse, error)
+	GetAllCardStatements(userId uint) ([]dto.CardStatementResponse, error)
+	GetCardStatementById(userId uint, cardStatementId uint) (dto.CardStatementResponse, error)
+	ProcessCSV(file *multipart.FileHeader, request dto.CardStatementRequest) ([]dto.CardStatementResponse, error)
+	PreviewCSV(file *multipart.FileHeader, request dto.CardStatementPreviewRequest) ([]dto.CardStatementResponse, error)
+	SaveCardStatements(request dto.CardStatementSaveRequest) ([]dto.CardStatementResponse, error)
+	GetCardStatementsByMonth(request dto.CardStatementByMonthRequest) ([]dto.CardStatementResponse, error)
 }
 
 // NewCardStatementUsecase は新しいカード明細ユースケースのインスタンスを作成します

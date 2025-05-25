@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -16,7 +16,7 @@ func TestCardStatementUsecase_ProcessCSV(t *testing.T) {
 				t.Fatalf("モックCSVファイルの作成に失敗しました: %v", err)
 			}
 			
-			request := model.CardStatementRequest{
+			request := dto.CardStatementRequest{
 				CardType: "invalid_card", // 無効なカード種類
 				Year:     2023,
 				Month:    1,
@@ -41,7 +41,7 @@ func TestCardStatementUsecase_ProcessCSV(t *testing.T) {
 				t.Fatalf("モックCSVファイルの作成に失敗しました: %v", err)
 			}
 			
-			request := model.CardStatementRequest{
+			request := dto.CardStatementRequest{
 				CardType: "rakuten",
 				Year:     2023,
 				Month:    13, // 無効な月
@@ -76,7 +76,7 @@ func TestCardStatementUsecase_ProcessCSV(t *testing.T) {
 				t.Fatalf("モックCSVファイルの作成に失敗しました: %v", err)
 			}
 			
-			request := model.CardStatementRequest{
+			request := dto.CardStatementRequest{
 				CardType: "rakuten",
 				Year:     2023,
 				Month:    1,

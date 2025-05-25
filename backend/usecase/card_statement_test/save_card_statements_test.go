@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -14,12 +14,12 @@ func TestCardStatementUsecase_SaveCardStatements(t *testing.T) {
 	t.Run("正常系", func(t *testing.T) {
 		t.Run("カード明細を正しく保存する", func(t *testing.T) {
 			// テスト用のカード明細サマリーを作成
-			summaries := []model.CardStatementSummary{
+			summaries := []dto.CardStatementSummary{
 				createTestCardStatementSummary("新規明細1"),
 				createTestCardStatementSummary("新規明細2"),
 			}
 			
-			request := model.CardStatementSaveRequest{
+			request := dto.CardStatementSaveRequest{
 				CardStatements: summaries,
 				CardType:       "rakuten",
 				Year:           2023,
@@ -64,8 +64,8 @@ func TestCardStatementUsecase_SaveCardStatements(t *testing.T) {
 	
 	t.Run("異常系", func(t *testing.T) {
 		t.Run("バリデーションエラー - 空の明細リスト", func(t *testing.T) {
-			request := model.CardStatementSaveRequest{
-				CardStatements: []model.CardStatementSummary{}, // 空のリスト
+			request := dto.CardStatementSaveRequest{
+				CardStatements: []dto.CardStatementSummary{}, // 空のリスト
 				CardType:       "rakuten",
 				Year:           2023,
 				Month:          2,
@@ -84,11 +84,11 @@ func TestCardStatementUsecase_SaveCardStatements(t *testing.T) {
 		})
 		
 		t.Run("バリデーションエラー - 無効なカード種類", func(t *testing.T) {
-			summaries := []model.CardStatementSummary{
+			summaries := []dto.CardStatementSummary{
 				createTestCardStatementSummary("テスト明細"),
 			}
 			
-			request := model.CardStatementSaveRequest{
+			request := dto.CardStatementSaveRequest{
 				CardStatements: summaries,
 				CardType:       "invalid_card", // 無効なカード種類
 				Year:           2023,

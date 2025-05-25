@@ -1,7 +1,7 @@
 package card_statement_test
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 	
 	t.Run("正常系", func(t *testing.T) {
 		t.Run("すべてのフィールドが有効な場合", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "rakuten",
 				Year:     2023,
 				Month:    4,
@@ -22,7 +22,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 		})
 		
 		t.Run("年月が指定されていなくても有効な場合", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "rakuten",
 				UserId:   testUser.ID,
 			}
@@ -32,7 +32,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 		})
 		
 		t.Run("月が0でも有効な場合（任意項目）", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "rakuten",
 				Year:     2023,
 				Month:    0,
@@ -46,7 +46,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 	
 	t.Run("異常系", func(t *testing.T) {
 		t.Run("カードタイプが空の場合", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "",
 				Year:     2023,
 				Month:    4,
@@ -58,7 +58,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 		})
 		
 		t.Run("無効なカードタイプの場合", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "invalid_card",
 				Year:     2023,
 				Month:    4,
@@ -70,7 +70,7 @@ func TestCardStatementValidatePreviewRequest(t *testing.T) {
 		})
 		
 		t.Run("月が範囲外の場合", func(t *testing.T) {
-			request := model.CardStatementPreviewRequest{
+			request := dto.CardStatementPreviewRequest{
 				CardType: "rakuten",
 				Year:     2023,
 				Month:    13,

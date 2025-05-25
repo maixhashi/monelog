@@ -1,16 +1,16 @@
 package validator
 
 import (
-	"monelog/model"
+	"monelog/dto"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type ICardStatementValidator interface {
-	ValidateCardStatementRequest(request model.CardStatementRequest) error
-	ValidateCardStatementPreviewRequest(request model.CardStatementPreviewRequest) error
-	ValidateCardStatementSaveRequest(request model.CardStatementSaveRequest) error
-	ValidateCardStatementByMonthRequest(request model.CardStatementByMonthRequest) error
+	ValidateCardStatementRequest(request dto.CardStatementRequest) error
+	ValidateCardStatementPreviewRequest(request dto.CardStatementPreviewRequest) error
+	ValidateCardStatementSaveRequest(request dto.CardStatementSaveRequest) error
+	ValidateCardStatementByMonthRequest(request dto.CardStatementByMonthRequest) error
 }
 type cardStatementValidator struct{}
 
@@ -18,7 +18,7 @@ func NewCardStatementValidator() ICardStatementValidator {
 	return &cardStatementValidator{}
 }
 
-func (csv *cardStatementValidator) ValidateCardStatementRequest(request model.CardStatementRequest) error {
+func (csv *cardStatementValidator) ValidateCardStatementRequest(request dto.CardStatementRequest) error {
 	return validation.ValidateStruct(&request,
 		validation.Field(
 			&request.CardType,
@@ -38,7 +38,7 @@ func (csv *cardStatementValidator) ValidateCardStatementRequest(request model.Ca
 	)
 }
 
-func (csv *cardStatementValidator) ValidateCardStatementPreviewRequest(request model.CardStatementPreviewRequest) error {
+func (csv *cardStatementValidator) ValidateCardStatementPreviewRequest(request dto.CardStatementPreviewRequest) error {
 	return validation.ValidateStruct(&request,
 		validation.Field(
 			&request.CardType,
@@ -58,7 +58,7 @@ func (csv *cardStatementValidator) ValidateCardStatementPreviewRequest(request m
 	)
 }
 
-func (csv *cardStatementValidator) ValidateCardStatementSaveRequest(request model.CardStatementSaveRequest) error {
+func (csv *cardStatementValidator) ValidateCardStatementSaveRequest(request dto.CardStatementSaveRequest) error {
 	return validation.ValidateStruct(&request,
 		validation.Field(
 			&request.CardType,
@@ -81,7 +81,7 @@ func (csv *cardStatementValidator) ValidateCardStatementSaveRequest(request mode
 		),
 	)
 }
-func (csv *cardStatementValidator) ValidateCardStatementByMonthRequest(request model.CardStatementByMonthRequest) error {
+func (csv *cardStatementValidator) ValidateCardStatementByMonthRequest(request dto.CardStatementByMonthRequest) error {
 	return validation.ValidateStruct(&request,
 		validation.Field(
 			&request.Year,

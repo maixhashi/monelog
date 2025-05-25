@@ -1,7 +1,7 @@
 package card_statement
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,7 +13,7 @@ func (h *Handler) SaveCardStatements(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
 	}
 	
-	var request model.CardStatementSaveRequest
+	var request dto.CardStatementSaveRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 	}

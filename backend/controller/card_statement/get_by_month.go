@@ -1,7 +1,7 @@
 package card_statement
 
 import (
-	"monelog/model"
+	"monelog/dto"
 	"net/http"
 	"strconv"
 
@@ -28,7 +28,7 @@ func (h *Handler) GetCardStatementsByMonth(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month format"})
 	}
 	
-	request := model.CardStatementByMonthRequest{
+	request := dto.CardStatementByMonthRequest{
 		Year:   year,
 		Month:  month,
 		UserId: userId,

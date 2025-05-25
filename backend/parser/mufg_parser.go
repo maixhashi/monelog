@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 	"math"
-	"monelog/model"
+	"monelog/dto"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,10 +16,10 @@ func NewMufgParser() ICardStatementParser {
 	return &MufgParser{}
 }
 
-func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error) {
+func (mp *MufgParser) Parse(csvData []byte) ([]dto.CardStatementSummary, error) {
 	text := string(csvData)
 	lines := strings.Split(text, "\n")
-	summaries := []model.CardStatementSummary{}
+	summaries := []dto.CardStatementSummary{}
 	statementNo := 1
 
 	// デバッグ情報を追加
@@ -64,7 +64,7 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 			useDateMatch := useDateRe.FindStringSubmatch(rawLine)
 			if len(useDateMatch) == 0 {
 				fmt.Printf("行 %d: 利用日が見つかりません\n", i)
-				return
+				return // 無名関数内なので、continueではなくreturnを使用
 			}
 			useDate := useDateMatch[1]
 			
@@ -140,8 +140,12 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 					// 2006-01-02 形式を試す
 					useDateObj, err = time.Parse("2006-01-02", useDate)
 					if err != nil {
-						fmt.Printf("日付変換エラー: %s\n", err)
-						return
+						// 2006-1-2 形式を試す
+						useDateObj, err = time.Parse("2006-1-2", useDate)
+						if err != nil {
+							fmt.Printf("行 %d: 日付変換エラー: %s\n", i, err)
+							return // 無名関数内なので、continueではなくreturnを使用
+						}
 					}
 				}
 			}
@@ -162,7 +166,7 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 				useDate, description, totalOriginalAmount, isInstallment, currentInstallment, installmentCount)
 
 			// 発生レコードを追加
-			summaries = append(summaries, model.CardStatementSummary{
+			summaries = append(summaries, dto.CardStatementSummary{
 				Type:              "発生",
 				StatementNo:       statementNo,
 				CardType:          cardType,
@@ -183,7 +187,7 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 			// 分割払いの場合、各回の支払いレコードを生成
 			if isInstallment {
 				// 各回の支払い情報を格納する配列
-				installmentPayments := []model.CardStatementSummary{}
+				installmentPayments := []dto.CardStatementSummary{}
 				
 				// 1回あたりの均等支払額を計算
 				monthlyPayment := totalChargeAmount / installmentCount
@@ -257,7 +261,7 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 					// 残高が負にならないように調整
 					calculatedRemainingBalance = Max(0, calculatedRemainingBalance)
 
-					installmentPayments = append(installmentPayments, model.CardStatementSummary{
+					installmentPayments = append(installmentPayments, dto.CardStatementSummary{
 						Type:              "分割",
 						StatementNo:       statementNo,
 						CardType:          cardType,
@@ -291,7 +295,7 @@ func (mp *MufgParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 				summaries = append(summaries, installmentPayments...)
 			} else {
 				// 一括払いの場合は1回の支払いレコードを生成
-				summaries = append(summaries, model.CardStatementSummary{
+				summaries = append(summaries, dto.CardStatementSummary{
 					Type:              "分割",
 					StatementNo:       statementNo,
 					CardType:          cardType,

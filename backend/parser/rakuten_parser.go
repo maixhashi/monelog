@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"monelog/model"
+	"monelog/dto"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +16,12 @@ func NewRakutenParser() ICardStatementParser {
 	return &RakutenParser{}
 }
 
-func (rp *RakutenParser) Parse(csvData []byte) ([]model.CardStatementSummary, error) {
+func (rp *RakutenParser) Parse(csvData []byte) ([]dto.CardStatementSummary, error) {
+	// 空データチェックを追加
+	if len(csvData) == 0 {
+		return nil, fmt.Errorf("empty CSV data")
+	}
+	
 	// CSVデータをUTF-8に変換（必要に応じて）
 	csvReader := csv.NewReader(bytes.NewReader(csvData))
 	
@@ -26,7 +31,7 @@ func (rp *RakutenParser) Parse(csvData []byte) ([]model.CardStatementSummary, er
 		return nil, err
 	}
 
-	summaries := []model.CardStatementSummary{}
+	summaries := []dto.CardStatementSummary{}
 	statementNo := 1
 
 	// ヘッダー行をスキップして処理
@@ -83,7 +88,7 @@ func (rp *RakutenParser) Parse(csvData []byte) ([]model.CardStatementSummary, er
 		paymentDateObj := CalculatePaymentDate(useDateObj, cardType)
 		
 		// 発生レコードを追加
-		summary := model.CardStatementSummary{
+		summary := dto.CardStatementSummary{
 			Type:              "発生",
 			StatementNo:       statementNo,
 			CardType:          cardType,
@@ -138,7 +143,7 @@ func (rp *RakutenParser) Parse(csvData []byte) ([]model.CardStatementSummary, er
 					remainingBalance -= paymentAmount
 				}
 
-				installmentSummary := model.CardStatementSummary{
+				installmentSummary := dto.CardStatementSummary{
 					Type:              "分割",
 					StatementNo:       statementNo,
 					CardType:          cardType,
@@ -160,7 +165,7 @@ func (rp *RakutenParser) Parse(csvData []byte) ([]model.CardStatementSummary, er
 			}
 		} else {
 			// 一括払いの場合は1回の支払いレコードを生成
-			installmentSummary := model.CardStatementSummary{
+			installmentSummary := dto.CardStatementSummary{
 				Type:              "分割",
 				StatementNo:       statementNo,
 				CardType:          cardType,

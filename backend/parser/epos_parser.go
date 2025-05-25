@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"math"
-	"monelog/model"
+	"monelog/dto"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +18,7 @@ func NewEposParser() ICardStatementParser {
 	return &EposParser{}
 }
 
-func (ep *EposParser) Parse(csvData []byte) ([]model.CardStatementSummary, error) {
+func (ep *EposParser) Parse(csvData []byte) ([]dto.CardStatementSummary, error) {
 	// CSVの区切り文字を検出
 	text := string(csvData)
 	delimiter := ep.detectDelimiter(text)
@@ -33,7 +33,7 @@ func (ep *EposParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 		return nil, err
 	}
 
-	summaries := []model.CardStatementSummary{}
+	summaries := []dto.CardStatementSummary{}
 	statementNo := 1
 
 	// ヘッダー行をスキップして処理
@@ -84,7 +84,7 @@ func (ep *EposParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 		firstPaymentDate := ep.calculatePaymentDate(useDateObj)
 		
 		// 発生レコードを作成
-		summaries = append(summaries, model.CardStatementSummary{
+		summaries = append(summaries, dto.CardStatementSummary{
 			Type:              "発生",
 			StatementNo:       statementNo,
 			CardType:          cardType,
@@ -133,7 +133,7 @@ func (ep *EposParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 					remainingBalance = 0
 				}
 				
-				summaries = append(summaries, model.CardStatementSummary{
+				summaries = append(summaries, dto.CardStatementSummary{
 					Type:              "分割",
 					StatementNo:       statementNo,
 					CardType:          cardType,
@@ -153,7 +153,7 @@ func (ep *EposParser) Parse(csvData []byte) ([]model.CardStatementSummary, error
 			}
 		} else {
 			// 一括払いの場合は、発生と同じ支払日で支払いレコードを作成
-			summaries = append(summaries, model.CardStatementSummary{
+			summaries = append(summaries, dto.CardStatementSummary{
 				Type:              "分割",
 				StatementNo:       statementNo,
 				CardType:          cardType,
